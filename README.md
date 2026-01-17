@@ -16,13 +16,32 @@
 
 ## 🚀 快速开始
 
-### 环境要求
-
-- [Node.js](https://nodejs.org/) >= 18
-- [pnpm](https://pnpm.io/) >= 8
-- [Rust](https://www.rust-lang.org/) >= 1.70（用于 Tauri 编译）
-
 ### 安装依赖
+
+**Node.js** (>= 18)
+
+```bash
+# macOS (Homebrew)
+brew install node
+
+# Windows (winget)
+winget install OpenJS.NodeJS
+```
+
+**pnpm** (>= 8)
+
+```bash
+npm install -g pnpm
+```
+
+**Rust** (>= 1.70)
+
+```bash
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+source $HOME/.cargo/env
+```
+
+**项目依赖**
 
 ```bash
 pnpm install
@@ -84,6 +103,7 @@ MXU 会按以下顺序查找 `interface.json`：
 | 类别 | 技术 |
 |------|------|
 | 桌面框架 | [Tauri](https://tauri.app/) v2 |
+| 后端语言 | [Rust](https://www.rust-lang.org/) 1.70+ |
 | 前端框架 | [React](https://react.dev/) 19 |
 | 类型系统 | [TypeScript](https://www.typescriptlang.org/) 5.8 |
 | 样式方案 | [Tailwind CSS](https://tailwindcss.com/) 4 |
