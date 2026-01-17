@@ -19,15 +19,15 @@ const isTauri = () => {
 export const maaService = {
   /**
    * 初始化 MaaFramework
-   * @param libDir MaaFramework 库目录
+   * @param libDir MaaFramework 库目录（可选，默认从 exe 目录/maafw 加载）
    * @returns 版本号
    */
-  async init(libDir: string): Promise<string> {
+  async init(libDir?: string): Promise<string> {
     // if (!isTauri()) {
     //   console.warn('MaaService: Not in Tauri environment');
     //   return 'mock-version';
     // }
-    return await invoke<string>('maa_init', { libDir });
+    return await invoke<string>('maa_init', { libDir: libDir || null });
   },
 
   /**

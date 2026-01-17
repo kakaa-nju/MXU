@@ -146,7 +146,7 @@ export function DeviceSelector({ instanceId, controllerDef, onConnectionChange }
       // 确保 MaaFramework 已初始化
       const initialized = await ensureMaaInitialized();
       if (!initialized) {
-        throw new Error('无法初始化 MaaFramework，请确保 MaaFramework.dll 和 MaaToolkit.dll 在正确的位置');
+        throw new Error('无法初始化 MaaFramework，请确保 MaaFramework 和 MaaToolkit 动态库在正确的位置');
       }
       
       if (controllerType === 'Adb') {

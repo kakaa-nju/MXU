@@ -1,6 +1,10 @@
 //! MaaFramework FFI bindings
 //! 
 //! 通过 libloading 动态加载 MaaFramework 库，实现运行时绑定
+//! 不同平台的动态库文件：
+//! - Windows: MaaFramework.dll, MaaToolkit.dll
+//! - macOS: libMaaFramework.dylib, libMaaToolkit.dylib
+//! - Linux: libMaaFramework.so, libMaaToolkit.so
 
 use std::ffi::{CStr, CString};
 use std::os::raw::{c_char, c_void};

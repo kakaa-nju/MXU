@@ -149,10 +149,42 @@ impl Default for MaaState {
 // Tauri 命令
 // ============================================================================
 
+/// 获取可执行文件所在目录下的 maafw 子目录
+fn get_maafw_dir() -> Result<PathBuf, String> {
+    let exe_path = std::env::current_exe()
+        .map_err(|e| format!("Failed to get executable path: {}", e))?;
+    let exe_dir = exe_path.parent()
+        .ok_or_else(|| "Failed to get executable directory".to_string())?;
+    
+    // macOS app bundle 需要特殊处理：exe 在 Contents/MacOS 下，maafw 应在 Contents/Resources 下
+    #[cfg(target_os = "macos")]
+    {
+        if exe_dir.ends_with("Contents/MacOS") {
+            let resources_dir = exe_dir.parent().unwrap().join("Resources").join("maafw");
+            if resources_dir.exists() {
+                return Ok(resources_dir);
+            }
+        }
+    }
+    
+    Ok(exe_dir.join("maafw"))
+}
+
 /// 初始化 MaaFramework
+/// 如果提供 lib_dir 则使用该路径，否则自动从 exe 目录/maafw 加载
 #[tauri::command]
-pub fn maa_init(state: State<MaaState>, lib_dir: String) -> Result<String, String> {
-    let lib_path = PathBuf::from(&lib_dir);
+pub fn maa_init(state: State<MaaState>, lib_dir: Option<String>) -> Result<String, String> {
+    let lib_path = match lib_dir {
+        Some(dir) if !dir.is_empty() => PathBuf::from(&dir),
+        _ => get_maafw_dir()?,
+    };
+    
+    if !lib_path.exists() {
+        return Err(format!(
+            "MaaFramework library directory not found: {}",
+            lib_path.display()
+        ));
+    }
     
     init_maa_library(&lib_path)?;
     

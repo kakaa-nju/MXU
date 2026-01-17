@@ -49,21 +49,11 @@ pnpm install
 
 ### 开发调试
 
-#### 浏览器模式（仅前端）
-
-```bash
-pnpm dev
-```
-
-访问 http://localhost:1420 查看界面。此模式会自动加载 `public/test/interface.json` 作为测试数据。
-
-#### Tauri 桌面应用模式
-
 ```bash
 pnpm tauri dev
 ```
 
-此命令会同时启动前端开发服务器和 Tauri 桌面应用，支持热重载。
+启动前端开发服务器和 Tauri 桌面应用，支持热重载。
 
 ### 生产构建
 
@@ -75,18 +65,40 @@ pnpm tauri build
 
 ## 📖 使用方式
 
+### 下载 MaaFramework
+
+MXU 需要 MaaFramework 运行时库才能正常工作。请从 [MaaFramework Releases](https://github.com/MaaXYZ/MaaFramework/releases) 下载对应平台的版本，将压缩包中的 `bin` 文件夹内容解压到 MXU 可执行文件同级目录的 `maafw` 文件夹中：
+
+```text
+your-project/
+├── mxu.exe (或 mxu / mxu.app)
+├── maafw/
+│   ├── MaaFramework.dll (Windows)
+│   ├── MaaToolkit.dll
+│   └── ... 其他依赖库
+├── interface.json
+└── resource/
+```
+
+> **注意**：不同平台的动态库文件后缀不同：
+>
+> - Windows: `.dll`
+> - macOS: `.dylib`
+> - Linux: `.so`
+
 ### 作为独立 GUI 使用
 
 1. 将编译好的 MXU 可执行文件放入你的 MaaFramework 项目目录
-2. 确保同级目录下存在 `interface.json` 文件
-3. 运行 MXU
+2. 下载并配置 MaaFramework 运行时库到 `maafw` 文件夹
+3. 确保同级目录下存在 `interface.json` 文件
+4. 运行 MXU
 
 ### interface.json 加载规则
 
 MXU 会按以下顺序查找 `interface.json`：
 
-1. **正式模式**: `./interface.json`（程序所在目录）
-2. **调试模式**: `./test/interface.json`（用于开发测试）
+1. **正式模式**：`./interface.json`（程序所在目录）
+2. **调试模式**：`./test/interface.json`（用于开发测试）
 
 调试模式会在界面顶部显示提示条。
 
@@ -116,8 +128,6 @@ MXU 会按以下顺序查找 `interface.json`：
 ## 🤝 相关项目
 
 - [MaaFramework](https://github.com/MaaXYZ/MaaFramework) - 基于图像识别的自动化黑盒测试框架
-- [MFAAvalonia](https://github.com/SweetSmellFox/MFAAvalonia) - 基于 Avalonia 的跨平台 GUI
-- [MFW-PyQt6](https://github.com/overflow65537/MFW-PyQt6) - 基于 PyQt6 的 GUI
 
 ## 📄 License
 
