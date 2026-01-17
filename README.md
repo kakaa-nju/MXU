@@ -101,4 +101,5 @@ MXU 会按以下顺序查找 `interface.json`：
 
 ## 📄 License
 
-[MIT](LICENSE)
+[GNU Affero General Public License v3.0](LICENSE)
+
