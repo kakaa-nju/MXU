@@ -421,23 +421,6 @@ export function DashboardView() {
 
   return (
     <div className="h-full flex flex-col bg-bg-primary overflow-hidden">
-      {/* 标题栏 */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-bg-secondary">
-        <div className="flex items-center gap-3">
-          <LayoutGrid className="w-5 h-5 text-accent" />
-          <h1 className="text-lg font-semibold text-text-primary">{t('dashboard.title')}</h1>
-          <span className="px-2 py-0.5 text-xs bg-accent/10 text-accent rounded-full">
-            {instances.length} {t('dashboard.instances')}
-          </span>
-        </div>
-        <button
-          onClick={toggleDashboardView}
-          className="px-3 py-1.5 text-sm bg-bg-hover hover:bg-bg-active text-text-secondary rounded-lg transition-colors"
-        >
-          {t('dashboard.exit')}
-        </button>
-      </div>
-
       {/* 实例网格 */}
       <div className="flex-1 overflow-auto p-6">
         {instances.length === 0 ? (
@@ -472,6 +455,23 @@ export function DashboardView() {
             ))}
           </div>
         )}
+      </div>
+
+      {/* 底部工具栏 */}
+      <div className="flex items-center justify-between px-6 py-4 border-t border-border bg-bg-secondary">
+        <div className="flex items-center gap-3">
+          <LayoutGrid className="w-5 h-5 text-accent" />
+          <h1 className="text-lg font-semibold text-text-primary">{t('dashboard.title')}</h1>
+          <span className="px-2 py-0.5 text-xs bg-accent/10 text-accent rounded-full">
+            {instances.length} {t('dashboard.instances')}
+          </span>
+        </div>
+        <button
+          onClick={toggleDashboardView}
+          className="px-3 py-1.5 text-sm bg-bg-hover hover:bg-bg-active text-text-secondary rounded-lg transition-colors"
+        >
+          {t('dashboard.exit')}
+        </button>
       </div>
     </div>
   );
