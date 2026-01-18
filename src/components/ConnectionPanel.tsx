@@ -15,7 +15,6 @@ import {
   Wifi,
   WifiOff,
   CheckCircle,
-  Info,
   Settings2,
 } from 'lucide-react';
 import clsx from 'clsx';
@@ -503,13 +502,9 @@ export function ConnectionPanel() {
             </div>
           )}
 
-          {/* PlayCover 地址输入 */}
+          {/* PlayCover 地址输入和连接按钮 */}
           {controllerType === 'PlayCover' && (
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 text-xs text-text-muted">
-                <Info className="w-3 h-3" />
-                <span>{t('controller.playcoverHint')}</span>
-              </div>
+            <div className="flex gap-2">
               <input
                 type="text"
                 value={playcoverAddress}
@@ -517,12 +512,33 @@ export function ConnectionPanel() {
                 placeholder="127.0.0.1:1717"
                 disabled={isConnected || isConnecting}
                 className={clsx(
-                  'w-full px-2.5 py-1.5 rounded-md border bg-bg-tertiary border-border text-sm',
+                  'flex-1 min-w-0 px-2.5 py-1.5 rounded-md border bg-bg-tertiary border-border text-sm',
                   'text-text-primary placeholder:text-text-muted',
                   'focus:outline-none focus:border-accent transition-colors',
                   isConnected && 'opacity-60 cursor-not-allowed'
                 )}
               />
+              <button
+                onClick={handleConnect}
+                disabled={isConnecting || isConnected || !canConnect()}
+                className={clsx(
+                  'flex items-center justify-center px-3 py-1.5 rounded-md border transition-colors',
+                  isConnected
+                    ? 'bg-green-500/20 border-green-500/50 cursor-not-allowed'
+                    : isConnecting || !canConnect()
+                    ? 'bg-bg-tertiary border-border opacity-50 cursor-not-allowed'
+                    : 'bg-accent border-accent text-white hover:bg-accent-hover'
+                )}
+                title={t('controller.connect')}
+              >
+                {isConnecting ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-text-secondary" />
+                ) : isConnected ? (
+                  <Check className="w-3.5 h-3.5 text-green-500" />
+                ) : (
+                  <Wifi className="w-3.5 h-3.5" />
+                )}
+              </button>
             </div>
           )}
 
@@ -605,32 +621,6 @@ export function ConnectionPanel() {
                 )}
               </button>
             </div>
-          )}
-
-          {/* PlayCover 需要手动连接按钮 */}
-          {controllerType === 'PlayCover' && !isConnected && (
-            <button
-              onClick={handleConnect}
-              disabled={isConnecting || !canConnect()}
-              className={clsx(
-                'w-full flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors',
-                isConnecting || !canConnect()
-                  ? 'bg-accent/50 text-white/70 cursor-not-allowed'
-                  : 'bg-accent text-white hover:bg-accent-hover'
-              )}
-            >
-              {isConnecting ? (
-                <>
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  {t('controller.connecting')}
-                </>
-              ) : (
-                <>
-                  <Wifi className="w-3.5 h-3.5" />
-                  {t('controller.connect')}
-                </>
-              )}
-            </button>
           )}
 
           {/* 设备错误提示 */}
