@@ -5,6 +5,7 @@ import type { UpdateChannel } from '@/types/config';
 import type { UpdateInfo } from '@/stores/appStore';
 import { loggers } from '@/utils/logger';
 import { fetch as tauriFetch } from '@tauri-apps/plugin-http';
+import { openUrl } from '@tauri-apps/plugin-opener';
 
 const log = loggers.app;
 
@@ -155,6 +156,7 @@ function compareVersions(v1: string, v2: string): number {
 
 /**
  * 打开 MirrorChyan 网站（带来源参数和版本号）
+ * 使用系统默认浏览器打开
  */
 export function openMirrorChyanWebsite(source?: string) {
   let url = 'https://mirrorchyan.com';
@@ -163,5 +165,7 @@ export function openMirrorChyanWebsite(source?: string) {
     const sourceWithVersion = version ? `${source}@${version}` : source;
     url += `?source=${encodeURIComponent(sourceWithVersion)}`;
   }
-  window.open(url, '_blank');
+  openUrl(url).catch((err) => {
+    log.error('Failed to open URL:', err);
+  });
 }
