@@ -150,6 +150,15 @@ export default {
     github: 'GitHub 仓库',
   },
 
+  // 调试
+  debug: {
+    title: '调试',
+    versions: '版本信息',
+    interfaceVersion: 'interface 版本',
+    maafwVersion: 'maafw 版本',
+    mxuVersion: 'mxu 版本',
+  },
+
   // 欢迎弹窗
   welcome: {
     dismiss: '我知道了',

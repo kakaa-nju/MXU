@@ -21,6 +21,7 @@ import { setLanguage as setI18nLanguage } from '@/i18n';
 import { resolveContent, resolveIconPath, simpleMarkdownToHtml, resolveI18nText } from '@/services/contentResolver';
 import { DeviceSelector } from './DeviceSelector';
 import { ResourceSelector } from './ResourceSelector';
+import { maaService } from '@/services/maaService';
 import clsx from 'clsx';
 import type { ControllerItem } from '@/types/interface';
 
@@ -57,6 +58,8 @@ export function SettingsPage() {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [debugLog, setDebugLog] = useState<string[]>([]);
+  const [mxuVersion, setMxuVersion] = useState<string | null>(null);
+  const [maafwVersion, setMaafwVersion] = useState<string | null>(null);
   
   // 控制器选择
   const [selectedControllerIndex, setSelectedControllerIndex] = useState(0);
@@ -65,6 +68,36 @@ export function SettingsPage() {
   const langKey = language === 'zh-CN' ? 'zh_cn' : 'en_us';
   const translations = interfaceTranslations[langKey];
   const isDebugMode = basePath === '/test';
+
+  // 版本信息（用于调试展示）
+  useEffect(() => {
+    const loadVersions = async () => {
+      // mxu 版本
+      if (isTauri()) {
+        try {
+          const { getVersion } = await import('@tauri-apps/api/app');
+          setMxuVersion(await getVersion());
+        } catch {
+          setMxuVersion(__MXU_VERSION__ || null);
+        }
+      } else {
+        setMxuVersion(__MXU_VERSION__ || null);
+      }
+
+      // maafw 版本（仅在 Tauri 环境有意义）
+      if (isTauri()) {
+        try {
+          setMaafwVersion(await maaService.getVersion());
+        } catch {
+          setMaafwVersion(null);
+        }
+      } else {
+        setMaafwVersion(null);
+      }
+    };
+
+    loadVersions();
+  }, []);
 
   // 获取控制器类型对应的图标
   const getControllerIcon = (ctrl: ControllerItem) => {
@@ -334,7 +367,7 @@ export function SettingsPage() {
           <section className="space-y-4">
             <h2 className="text-sm font-semibold text-text-primary uppercase tracking-wider flex items-center gap-2">
               <Bug className="w-4 h-4" />
-              调试
+              {t('debug.title')}
             </h2>
             
             <div className="bg-bg-secondary rounded-xl p-4 border border-border space-y-4">
@@ -346,11 +379,17 @@ export function SettingsPage() {
                 </div>
               )}
 
+              {/* 版本信息 */}
+              <div className="text-sm text-text-secondary space-y-1">
+                <p className="font-medium text-text-primary">{t('debug.versions')}</p>
+                <p>{t('debug.interfaceVersion')}: <span className="font-mono text-text-primary">{version || '-'}</span></p>
+                <p>{t('debug.maafwVersion')}: <span className="font-mono text-text-primary">{maafwVersion || t('maa.notInitialized')}</span></p>
+                <p>{t('debug.mxuVersion')}: <span className="font-mono text-text-primary">{mxuVersion || '-'}</span></p>
+              </div>
+
               {/* 环境信息 */}
               <div className="text-sm text-text-secondary space-y-1">
                 <p>环境: <span className="font-mono text-text-primary">{isTauri() ? 'Tauri 桌面应用' : '浏览器'}</span></p>
-                <p>__TAURI__: <span className="font-mono text-text-primary">{String('__TAURI__' in window)}</span></p>
-                <p>projectInterface: <span className="font-mono text-text-primary">{projectInterface ? '已加载' : '未加载'}</span></p>
               </div>
               
               {/* 操作按钮 */}

@@ -150,6 +150,15 @@ export default {
     github: 'GitHub Repository',
   },
 
+  // Debug
+  debug: {
+    title: 'Debug',
+    versions: 'Versions',
+    interfaceVersion: 'Interface version',
+    maafwVersion: 'maafw version',
+    mxuVersion: 'mxu version',
+  },
+
   // Welcome dialog
   welcome: {
     dismiss: 'Got it',
