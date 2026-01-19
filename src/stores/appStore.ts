@@ -131,6 +131,10 @@ interface AppState {
   setMirrorChyanCdk: (cdk: string) => void;
   setMirrorChyanChannel: (channel: UpdateChannel) => void;
   
+  // 任务选项预览显示设置
+  showOptionPreview: boolean;
+  setShowOptionPreview: (show: boolean) => void;
+  
   // 更新检查状态
   updateInfo: UpdateInfo | null;
   updateCheckLoading: boolean;
@@ -732,6 +736,7 @@ export const useAppStore = create<AppState>()(
           nextInstanceNumber: maxNumber + 1,
           windowSize: config.settings.windowSize || defaultWindowSize,
           mirrorChyanSettings: config.settings.mirrorChyan || defaultMirrorChyanSettings,
+          showOptionPreview: config.settings.showOptionPreview ?? true,
           recentlyClosed: config.recentlyClosed || [],
         });
         
@@ -852,6 +857,10 @@ export const useAppStore = create<AppState>()(
         mirrorChyanSettings: { ...state.mirrorChyanSettings, channel },
       })),
       
+      // 任务选项预览显示设置
+      showOptionPreview: true,
+      setShowOptionPreview: (show) => set({ showOptionPreview: show }),
+      
       // 更新检查状态
       updateInfo: null,
       updateCheckLoading: false,
@@ -944,6 +953,7 @@ function generateConfig(): MxuConfig {
       language: state.language,
       windowSize: state.windowSize,
       mirrorChyan: state.mirrorChyanSettings,
+      showOptionPreview: state.showOptionPreview,
     },
     recentlyClosed: state.recentlyClosed,
   };
@@ -973,6 +983,7 @@ useAppStore.subscribe(
     language: state.language,
     windowSize: state.windowSize,
     mirrorChyanSettings: state.mirrorChyanSettings,
+    showOptionPreview: state.showOptionPreview,
     recentlyClosed: state.recentlyClosed,
   }),
   () => {

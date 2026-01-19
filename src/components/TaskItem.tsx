@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -22,6 +22,50 @@ import { OptionEditor } from './OptionEditor';
 import { ContextMenu, useContextMenu, type MenuItem } from './ContextMenu';
 import type { SelectedTask } from '@/types/interface';
 import clsx from 'clsx';
+
+/** 选项预览标签组件 */
+function OptionPreviewTag({ 
+  label, 
+  value, 
+  type 
+}: { 
+  label: string; 
+  value: string; 
+  type: 'select' | 'switch' | 'input';
+}) {
+  // 截断过长的显示值
+  const truncateText = (text: string, max: number) => 
+    text.length > max ? text.slice(0, max) + '…' : text;
+  
+  return (
+    <span 
+      className={clsx(
+        'inline-flex items-center gap-1 px-1.5 py-0.5 text-xs rounded',
+        'text-text-tertiary',
+        'max-w-[140px]'
+      )}
+      title={`${label}: ${value}`}
+    >
+      {type === 'switch' ? (
+        // Switch 类型：显示选项名 + 状态圆点
+        <>
+          <span className="truncate">{truncateText(label, 6)}</span>
+          <span className={clsx(
+            'w-1.5 h-1.5 rounded-full flex-shrink-0',
+            value === 'ON' ? 'bg-success/70' : 'bg-text-muted/50'
+          )} />
+        </>
+      ) : (
+        // Select/Input 类型：显示选项名: 值
+        <>
+          <span className="truncate flex-shrink-0">{truncateText(label, 4)}</span>
+          <span className="flex-shrink-0">:</span>
+          <span className="truncate">{truncateText(value, 6)}</span>
+        </>
+      )}
+    </span>
+  );
+}
 
 interface TaskItemProps {
   instanceId: string;
@@ -47,6 +91,7 @@ export function TaskItem({ instanceId, task }: TaskItemProps) {
     resolveI18nText,
     language,
     getActiveInstance,
+    showOptionPreview,
   } = useAppStore();
 
   const { state: menuState, show: showMenu, hide: hideMenu } = useContextMenu();
@@ -72,6 +117,66 @@ export function TaskItem({ instanceId, task }: TaskItemProps) {
   const originalLabel = resolveI18nText(taskDef.label, langKey) || taskDef.name;
   const displayName = task.customName || originalLabel;
   const hasOptions = taskDef.option && taskDef.option.length > 0;
+
+  // 生成选项预览信息（最多显示3个）
+  const optionPreviews = useMemo(() => {
+    if (!hasOptions || !projectInterface?.option) return [];
+    
+    const previews: { key: string; label: string; value: string; type: 'select' | 'switch' | 'input' }[] = [];
+    const maxPreviews = 3;
+    
+    for (const optionKey of taskDef.option || []) {
+      if (previews.length >= maxPreviews) break;
+      
+      const optionDef = projectInterface.option[optionKey];
+      if (!optionDef) continue;
+      
+      const optionLabel = resolveI18nText(optionDef.label, langKey) || optionKey;
+      const optionValue = task.optionValues[optionKey];
+      
+      if (optionDef.type === 'switch') {
+        const isOn = optionValue?.type === 'switch' ? optionValue.value : false;
+        previews.push({
+          key: optionKey,
+          label: optionLabel,
+          value: isOn ? 'ON' : 'OFF',
+          type: 'switch',
+        });
+      } else if (optionDef.type === 'input') {
+        const inputValues = optionValue?.type === 'input' ? optionValue.values : {};
+        // 获取第一个有值的输入项
+        const firstInput = optionDef.inputs[0];
+        if (firstInput) {
+          const inputValue = inputValues[firstInput.name] || firstInput.default || '';
+          if (inputValue) {
+            previews.push({
+              key: optionKey,
+              label: optionLabel,
+              value: inputValue,
+              type: 'input',
+            });
+          }
+        }
+      } else {
+        // select 类型（默认）
+        const caseName = optionValue?.type === 'select' 
+          ? optionValue.caseName 
+          : optionDef.default_case || optionDef.cases?.[0]?.name || '';
+        const selectedCase = optionDef.cases?.find(c => c.name === caseName);
+        const caseLabel = selectedCase 
+          ? (resolveI18nText(selectedCase.label, langKey) || selectedCase.name)
+          : caseName;
+        previews.push({
+          key: optionKey,
+          label: optionLabel,
+          value: caseLabel,
+          type: 'select',
+        });
+      }
+    }
+    
+    return previews;
+  }, [hasOptions, projectInterface?.option, taskDef.option, task.optionValues, langKey, resolveI18nText]);
 
   const handleDoubleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -281,7 +386,7 @@ export function TaskItem({ instanceId, task }: TaskItemProps) {
             <>
               {/* 任务名称 */}
               <div 
-                className="flex items-center gap-1 min-w-0 cursor-pointer"
+                className="flex items-center gap-1 min-w-0 cursor-pointer flex-shrink-0"
                 onDoubleClick={handleDoubleClick}
                 title={t('taskItem.rename')}
               >
@@ -300,18 +405,34 @@ export function TaskItem({ instanceId, task }: TaskItemProps) {
                 )}
               </div>
 
-              {/* 展开/折叠点击区域 - 占据右侧剩余空间 */}
+              {/* 展开/折叠点击区域（包含选项预览） */}
               {hasOptions && (
                 <div
                   onClick={() => toggleTaskExpanded(instanceId, task.id)}
-                  className="flex-1 flex items-center justify-end cursor-pointer self-stretch min-h-[28px] pl-2"
+                  className="flex-1 flex items-center cursor-pointer self-stretch min-h-[28px]"
                   title={task.expanded ? t('taskItem.collapse') : t('taskItem.expand')}
                 >
-                  {task.expanded ? (
-                    <ChevronDown className="w-4 h-4 text-text-secondary" />
-                  ) : (
-                    <ChevronRight className="w-4 h-4 text-text-secondary" />
+                  {/* 选项预览标签 - 未展开时显示 */}
+                  {showOptionPreview && !task.expanded && optionPreviews.length > 0 && (
+                    <div className="flex-1 flex items-center gap-1.5 mx-2 overflow-hidden">
+                      {optionPreviews.map((preview) => (
+                        <OptionPreviewTag
+                          key={preview.key}
+                          label={preview.label}
+                          value={preview.value}
+                          type={preview.type}
+                        />
+                      ))}
+                    </div>
                   )}
+                  {/* 展开/折叠箭头 */}
+                  <div className="flex items-center justify-end pl-2 ml-auto">
+                    {task.expanded ? (
+                      <ChevronDown className="w-4 h-4 text-text-secondary" />
+                    ) : (
+                      <ChevronRight className="w-4 h-4 text-text-secondary" />
+                    )}
+                  </div>
                 </div>
               )}
             </>

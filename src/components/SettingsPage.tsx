@@ -16,6 +16,7 @@ import {
   ExternalLink,
   Eye,
   EyeOff,
+  ListChecks,
 } from 'lucide-react';
 import type { UpdateChannel } from '@/types/config';
 import { checkUpdate, openMirrorChyanWebsite } from '@/services/updateService';
@@ -57,6 +58,8 @@ export function SettingsPage() {
     setUpdateInfo,
     setUpdateCheckLoading,
     setShowUpdateDialog,
+    showOptionPreview,
+    setShowOptionPreview,
   } = useAppStore();
 
   const [resolvedContent, setResolvedContent] = useState<ResolvedContent>({
@@ -305,6 +308,33 @@ export function SettingsPage() {
                   )}
                 >
                   {t('settings.themeDark')}
+                </button>
+              </div>
+            </div>
+
+            {/* 选项预览 */}
+            <div className="bg-bg-secondary rounded-xl p-4 border border-border">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <ListChecks className="w-5 h-5 text-accent" />
+                  <div>
+                    <span className="font-medium text-text-primary">{t('settings.showOptionPreview')}</span>
+                    <p className="text-xs text-text-muted mt-0.5">{t('settings.showOptionPreviewHint')}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowOptionPreview(!showOptionPreview)}
+                  className={clsx(
+                    'relative w-11 h-6 rounded-full transition-colors flex-shrink-0',
+                    showOptionPreview ? 'bg-accent' : 'bg-bg-active'
+                  )}
+                >
+                  <span
+                    className={clsx(
+                      'absolute top-1 left-1 w-4 h-4 rounded-full bg-white shadow-sm transition-transform duration-200',
+                      showOptionPreview ? 'translate-x-5' : 'translate-x-0'
+                    )}
+                  />
                 </button>
               </div>
             </div>

@@ -35,6 +35,8 @@ export default {
     themeLight: '浅色',
     themeDark: '深色',
     themeSystem: '跟随系统',
+    showOptionPreview: '显示选项预览',
+    showOptionPreviewHint: '在任务列表中显示选项的快捷预览信息',
   },
 
   // 任务列表

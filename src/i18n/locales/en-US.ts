@@ -35,6 +35,8 @@ export default {
     themeLight: 'Light',
     themeDark: 'Dark',
     themeSystem: 'System',
+    showOptionPreview: 'Show Option Preview',
+    showOptionPreviewHint: 'Display quick preview of options in the task list',
   },
 
   // Task list

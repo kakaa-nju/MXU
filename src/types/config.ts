@@ -69,6 +69,7 @@ export interface AppSettings {
   language: 'zh-CN' | 'en-US';
   windowSize?: WindowSize;
   mirrorChyan?: MirrorChyanSettings;
+  showOptionPreview?: boolean;  // 是否在任务列表显示选项预览
 }
 
 // MXU 配置文件完整结构
