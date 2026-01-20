@@ -1,9 +1,8 @@
 // MirrorChyan 更新检查服务
 // API 文档: https://github.com/MirrorChyan/docs
 
-import type { UpdateChannel, UpdateCompleteInfo, PendingUpdateInfo } from '@/types/config';
+import type { UpdateChannel } from '@/types/config';
 import type { UpdateInfo, DownloadProgress } from '@/stores/appStore';
-import { useAppStore } from '@/stores/appStore';
 import { loggers } from '@/utils/logger';
 import { fetch as tauriFetch } from '@tauri-apps/plugin-http';
 import { openUrl } from '@tauri-apps/plugin-opener';
@@ -816,55 +815,109 @@ export async function installUpdate(options: InstallUpdateOptions): Promise<bool
   }
 }
 
-// 类型从 config.ts 导出，这里重新导出供外部使用
-export type { UpdateCompleteInfo, PendingUpdateInfo } from '@/types/config';
+// 更新完成信息存储 key
+const UPDATE_COMPLETE_STORAGE_KEY = 'mxu-update-complete';
+// 待安装更新信息存储 key
+const PENDING_UPDATE_STORAGE_KEY = 'mxu-pending-update';
 
 /**
- * 保存更新完成信息到配置文件
+ * 更新完成后的信息（用于重启后显示）
+ */
+export interface UpdateCompleteInfo {
+  previousVersion: string;
+  newVersion: string;
+  releaseNote: string;
+  channel?: string;
+  timestamp: number;
+}
+
+/**
+ * 待安装的更新信息（下载完成后保存，用于下次启动时自动安装）
+ */
+export interface PendingUpdateInfo {
+  versionName: string;
+  releaseNote: string;
+  channel?: string;
+  downloadSavePath: string;
+  fileSize?: number;
+  updateType?: 'incremental' | 'full';
+  downloadSource?: 'mirrorchyan' | 'github';
+  timestamp: number;
+}
+
+/**
+ * 保存更新完成信息到本地存储
  */
 export function saveUpdateCompleteInfo(info: UpdateCompleteInfo): void {
-  useAppStore.getState().setUpdateCompleteInfo(info);
-  log.info('已保存更新完成信息');
+  try {
+    localStorage.setItem(UPDATE_COMPLETE_STORAGE_KEY, JSON.stringify(info));
+    log.info('已保存更新完成信息');
+  } catch (error) {
+    log.warn('保存更新完成信息失败:', error);
+  }
 }
 
 /**
  * 读取并清除更新完成信息
  */
 export function consumeUpdateCompleteInfo(): UpdateCompleteInfo | null {
-  const info = useAppStore.getState().updateCompleteInfo;
-  if (!info) return null;
-  
-  // 读取后立即清除
-  useAppStore.getState().setUpdateCompleteInfo(null);
-  log.info('已读取更新完成信息:', info.newVersion);
-  return info;
+  try {
+    const data = localStorage.getItem(UPDATE_COMPLETE_STORAGE_KEY);
+    if (!data) return null;
+    
+    // 读取后立即清除
+    localStorage.removeItem(UPDATE_COMPLETE_STORAGE_KEY);
+    
+    const info = JSON.parse(data) as UpdateCompleteInfo;
+    log.info('已读取更新完成信息:', info.newVersion);
+    return info;
+  } catch (error) {
+    log.warn('读取更新完成信息失败:', error);
+    localStorage.removeItem(UPDATE_COMPLETE_STORAGE_KEY);
+    return null;
+  }
 }
 
 /**
- * 保存待安装更新信息到配置文件（下载完成后调用）
+ * 保存待安装更新信息到本地存储（下载完成后调用）
  */
 export function savePendingUpdateInfo(info: PendingUpdateInfo): void {
-  useAppStore.getState().setPendingUpdateInfo(info);
-  log.info('已保存待安装更新信息:', info.versionName);
+  try {
+    localStorage.setItem(PENDING_UPDATE_STORAGE_KEY, JSON.stringify(info));
+    log.info('已保存待安装更新信息:', info.versionName);
+  } catch (error) {
+    log.warn('保存待安装更新信息失败:', error);
+  }
 }
 
 /**
  * 读取待安装更新信息（不自动清除，需要手动调用 clearPendingUpdateInfo）
  */
 export function getPendingUpdateInfo(): PendingUpdateInfo | null {
-  const info = useAppStore.getState().pendingUpdateInfo;
-  if (!info) return null;
-  
-  log.info('检测到待安装更新:', info.versionName);
-  return info;
+  try {
+    const data = localStorage.getItem(PENDING_UPDATE_STORAGE_KEY);
+    if (!data) return null;
+    
+    const info = JSON.parse(data) as PendingUpdateInfo;
+    log.info('检测到待安装更新:', info.versionName);
+    return info;
+  } catch (error) {
+    log.warn('读取待安装更新信息失败:', error);
+    localStorage.removeItem(PENDING_UPDATE_STORAGE_KEY);
+    return null;
+  }
 }
 
 /**
  * 清除待安装更新信息（安装完成或用户取消后调用）
  */
 export function clearPendingUpdateInfo(): void {
-  useAppStore.getState().setPendingUpdateInfo(null);
-  log.info('已清除待安装更新信息');
+  try {
+    localStorage.removeItem(PENDING_UPDATE_STORAGE_KEY);
+    log.info('已清除待安装更新信息');
+  } catch (error) {
+    log.warn('清除待安装更新信息失败:', error);
+  }
 }
 
 /**

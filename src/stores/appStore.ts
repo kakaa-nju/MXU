@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { subscribeWithSelector } from 'zustand/middleware';
 import type { ProjectInterface, Instance, SelectedTask, OptionValue, TaskItem, OptionDefinition, SavedDeviceInfo } from '@/types/interface';
-import type { MxuConfig, WindowSize, UpdateChannel, MirrorChyanSettings, RecentlyClosedInstance, ScreenshotFrameRate, UpdateCompleteInfo, PendingUpdateInfo } from '@/types/config';
+import type { MxuConfig, WindowSize, UpdateChannel, MirrorChyanSettings, RecentlyClosedInstance, ScreenshotFrameRate } from '@/types/config';
 import { defaultWindowSize, defaultMirrorChyanSettings, defaultScreenshotFrameRate } from '@/types/config';
 
 // 最近关闭列表最大条目数
@@ -175,16 +175,6 @@ interface AppState {
   // 实时截图帧率设置
   screenshotFrameRate: ScreenshotFrameRate;
   setScreenshotFrameRate: (rate: ScreenshotFrameRate) => void;
-  
-  // Welcome 弹窗内容 hash（用于判断是否需要再次显示）
-  welcomeContentHash: string | null;
-  setWelcomeContentHash: (hash: string | null) => void;
-  
-  // 更新状态持久化（跨重启）
-  updateCompleteInfo: UpdateCompleteInfo | null;
-  pendingUpdateInfo: PendingUpdateInfo | null;
-  setUpdateCompleteInfo: (info: UpdateCompleteInfo | null) => void;
-  setPendingUpdateInfo: (info: PendingUpdateInfo | null) => void;
   
   // 更新检查状态
   updateInfo: UpdateInfo | null;
@@ -907,10 +897,7 @@ export const useAppStore = create<AppState>()(
           connectionPanelExpanded: config.settings.connectionPanelExpanded ?? true,
           screenshotPanelExpanded: config.settings.screenshotPanelExpanded ?? true,
           screenshotFrameRate: config.settings.screenshotFrameRate ?? defaultScreenshotFrameRate,
-          welcomeContentHash: config.settings.welcomeContentHash || null,
           recentlyClosed: config.recentlyClosed || [],
-          updateCompleteInfo: config.updateCompleteInfo || null,
-          pendingUpdateInfo: config.pendingUpdateInfo || null,
         });
         
         document.documentElement.classList.toggle('dark', config.settings.theme === 'dark');
@@ -1084,16 +1071,6 @@ export const useAppStore = create<AppState>()(
       // 实时截图帧率设置
       screenshotFrameRate: defaultScreenshotFrameRate,
       setScreenshotFrameRate: (rate) => set({ screenshotFrameRate: rate }),
-      
-      // Welcome 弹窗内容 hash
-      welcomeContentHash: null,
-      setWelcomeContentHash: (hash) => set({ welcomeContentHash: hash }),
-      
-      // 更新状态持久化
-      updateCompleteInfo: null,
-      pendingUpdateInfo: null,
-      setUpdateCompleteInfo: (info) => set({ updateCompleteInfo: info }),
-      setPendingUpdateInfo: (info) => set({ pendingUpdateInfo: info }),
       
       // 更新检查状态
       updateInfo: null,
@@ -1406,11 +1383,8 @@ function generateConfig(): MxuConfig {
       connectionPanelExpanded: state.connectionPanelExpanded,
       screenshotPanelExpanded: state.screenshotPanelExpanded,
       screenshotFrameRate: state.screenshotFrameRate,
-      welcomeContentHash: state.welcomeContentHash || undefined,
     },
     recentlyClosed: state.recentlyClosed,
-    updateCompleteInfo: state.updateCompleteInfo || undefined,
-    pendingUpdateInfo: state.pendingUpdateInfo || undefined,
   };
 }
 
@@ -1443,10 +1417,7 @@ useAppStore.subscribe(
     connectionPanelExpanded: state.connectionPanelExpanded,
     screenshotPanelExpanded: state.screenshotPanelExpanded,
     screenshotFrameRate: state.screenshotFrameRate,
-    welcomeContentHash: state.welcomeContentHash,
     recentlyClosed: state.recentlyClosed,
-    updateCompleteInfo: state.updateCompleteInfo,
-    pendingUpdateInfo: state.pendingUpdateInfo,
   }),
   () => {
     debouncedSaveConfig();

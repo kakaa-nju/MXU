@@ -89,28 +89,6 @@ export interface AppSettings {
   connectionPanelExpanded?: boolean; // 连接设置卡片是否展开
   screenshotPanelExpanded?: boolean; // 实时截图卡片是否展开
   screenshotFrameRate?: ScreenshotFrameRate; // 实时截图帧率
-  welcomeContentHash?: string;  // 已显示过的 welcome 内容 hash，用于判断是否需要再次显示
-}
-
-// 更新完成后的信息（用于重启后显示）
-export interface UpdateCompleteInfo {
-  previousVersion: string;
-  newVersion: string;
-  releaseNote: string;
-  channel?: string;
-  timestamp: number;
-}
-
-// 待安装的更新信息（下载完成后保存，用于下次启动时自动安装）
-export interface PendingUpdateInfo {
-  versionName: string;
-  releaseNote: string;
-  channel?: string;
-  downloadSavePath: string;
-  fileSize?: number;
-  updateType?: 'incremental' | 'full';
-  downloadSource?: 'mirrorchyan' | 'github';
-  timestamp: number;
 }
 
 // MXU 配置文件完整结构
@@ -119,9 +97,6 @@ export interface MxuConfig {
   instances: SavedInstance[];
   settings: AppSettings;
   recentlyClosed?: RecentlyClosedInstance[];  // 最近关闭的实例列表（最多30条）
-  // 更新相关状态（跨重启持久化）
-  updateCompleteInfo?: UpdateCompleteInfo;    // 更新完成信息，重启后显示成功提示
-  pendingUpdateInfo?: PendingUpdateInfo;      // 待安装更新信息
 }
 
 // 默认窗口大小
