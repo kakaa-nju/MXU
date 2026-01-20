@@ -96,8 +96,6 @@ jobs:
         shell: bash
         run: |
           mkdir -p install
-          cp -r src-tauri/target/${{ matrix.arch == 'x86_64' && 'x86_64-pc-windows-msvc' || 'aarch64-pc-windows-msvc' }}/release/bundle/msi/*.msi install/ || true
-          cp -r src-tauri/target/${{ matrix.arch == 'x86_64' && 'x86_64-pc-windows-msvc' || 'aarch64-pc-windows-msvc' }}/release/bundle/nsis/*.exe install/ || true
           cp -r src-tauri/target/${{ matrix.arch == 'x86_64' && 'x86_64-pc-windows-msvc' || 'aarch64-pc-windows-msvc' }}/release/mxu.exe install/ || true
           ls -la install/
 
@@ -153,8 +151,6 @@ jobs:
       - name: Prepare artifacts
         run: |
           mkdir -p install
-          cp -r src-tauri/target/release/bundle/deb/*.deb install/ || true
-          cp -r src-tauri/target/release/bundle/appimage/*.AppImage install/ || true
           cp -r src-tauri/target/release/mxu install/ || true
           ls -la install/
 
@@ -209,7 +205,6 @@ jobs:
       - name: Prepare artifacts
         run: |
           mkdir -p install
-          cp -r src-tauri/target/${{ matrix.arch == 'x86_64' && 'x86_64-apple-darwin' || 'aarch64-apple-darwin' }}/release/bundle/dmg/*.dmg install/ || true
           cp -r src-tauri/target/${{ matrix.arch == 'x86_64' && 'x86_64-apple-darwin' || 'aarch64-apple-darwin' }}/release/bundle/macos/*.app install/ || true
           ls -la install/
 
