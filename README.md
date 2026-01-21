@@ -21,7 +21,7 @@
 
 ### 依赖文件
 
-[MXU Releases](https://github.com/MistEO/MXU/releases) 中提供单 exec 文件（ mxu.exe），需要您还配置以下依赖：
+[MXU Releases](https://github.com/MistEO/MXU/releases) 中提供了单 exec 文件（mxu.exe），您需要配置以下依赖：
 
 - [MaaFramework](https://github.com/MaaXYZ/MaaFramework/releases) 运行库，将压缩包中的 `bin` 文件夹内容解压到 `maafw` 文件夹中
 - [interface.json](https://github.com/MaaXYZ/MaaFramework/blob/main/sample/interface.json) 及相关资源文件，请参考 [PI 协议文档](https://github.com/MaaXYZ/MaaFramework/blob/main/docs/zh_cn/3.3-ProjectInterfaceV2%E5%8D%8F%E8%AE%AE.md) 编写
