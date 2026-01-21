@@ -692,10 +692,12 @@ export function SettingsPage() {
                           : 'hover:bg-bg-hover',
                         'bg-bg-tertiary',
                       )}
-                      style={{
+                      style={
                         // 选中时使用该颜色作为 ring 颜色
-                        ...(accentColor === accent.name && { '--tw-ring-color': accent.color }),
-                      }}
+                        accentColor === accent.name
+                          ? ({ '--tw-ring-color': accent.color } as React.CSSProperties)
+                          : undefined
+                      }
                     >
                       <span
                         className="w-4 h-4 rounded-full flex-shrink-0 border border-border-strong"
