@@ -308,6 +308,7 @@ export default {
   // MirrorChyan 업데이트
   mirrorChyan: {
     title: '업데이트',
+    debugModeNotice: '디버그 버전이므로 자동 업데이트 기능이 비활성화되었습니다',
     channel: '업데이트 채널',
     channelStable: '안정 버전',
     channelBeta: '베타 버전',

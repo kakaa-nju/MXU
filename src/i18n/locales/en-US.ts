@@ -313,6 +313,7 @@ export default {
   // MirrorChyan Update
   mirrorChyan: {
     title: 'Update',
+    debugModeNotice: 'Debug version detected, auto-update is disabled',
     channel: 'Update Channel',
     channelStable: 'Stable',
     channelBeta: 'Beta',

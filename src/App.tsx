@@ -432,7 +432,7 @@ function App() {
       }
 
       // 检查是否有待安装的更新（上次下载完成但未安装）
-      const pendingUpdate = getPendingUpdateInfo();
+      const pendingUpdate = await getPendingUpdateInfo();
       if (pendingUpdate) {
         log.info('检测到待安装更新:', pendingUpdate.versionName);
         // 恢复更新状态

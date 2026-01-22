@@ -314,6 +314,7 @@ export default {
   // MirrorChyan アップデート
   mirrorChyan: {
     title: 'アップデート',
+    debugModeNotice: 'デバッグバージョンのため、自動更新機能が無効になっています',
     channel: '更新チャンネル',
     channelStable: '安定版',
     channelBeta: 'ベータ版',

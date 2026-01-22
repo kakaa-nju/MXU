@@ -312,6 +312,7 @@ export default {
   // MirrorChyan 更新
   mirrorChyan: {
     title: '更新',
+    debugModeNotice: '当前为调试版本，已禁用自动更新功能',
     channel: '更新频道',
     channelStable: '正式版',
     channelBeta: '公测版',

@@ -9,6 +9,7 @@ import { openUrl } from '@tauri-apps/plugin-opener';
 import { mkdir, remove, rename, exists } from '@tauri-apps/plugin-fs';
 import { join, dirname, basename } from '@tauri-apps/api/path';
 import { invoke } from '@tauri-apps/api/core';
+import * as semver from 'semver';
 
 const log = loggers.app;
 
@@ -345,6 +346,22 @@ export async function checkUpdate(options: CheckUpdateOptions): Promise<UpdateIn
     fileSize: filesize,
     downloadSource: downloadUrl ? 'mirrorchyan' : undefined,
   };
+}
+
+/**
+ * 判断是否为调试版本（不进行自动更新）
+ * 调试版本定义：版本号为 "DEBUG_VERSION" 或小于 "1.0.0"
+ */
+export function isDebugVersion(version: string | undefined): boolean {
+  if (!version) return false;
+  if (version === 'DEBUG_VERSION') return true;
+
+  // 使用 semver.coerce 将版本号转换为标准格式（支持带/不带 v 前缀）
+  const parsed = semver.coerce(version);
+  if (!parsed) return false;
+
+  // 检查是否小于 1.0.0
+  return semver.lt(parsed, '1.0.0');
 }
 
 /**
@@ -875,13 +892,22 @@ export function savePendingUpdateInfo(info: PendingUpdateInfo): void {
 
 /**
  * 读取待安装更新信息（不自动清除，需要手动调用 clearPendingUpdateInfo）
+ * 如果更新包文件已被删除，会自动清除待安装信息并返回 null
  */
-export function getPendingUpdateInfo(): PendingUpdateInfo | null {
+export async function getPendingUpdateInfo(): Promise<PendingUpdateInfo | null> {
   try {
     const data = localStorage.getItem(PENDING_UPDATE_STORAGE_KEY);
     if (!data) return null;
 
     const info = JSON.parse(data) as PendingUpdateInfo;
+
+    // 检查更新包文件是否仍然存在
+    if (info.downloadSavePath && !(await exists(info.downloadSavePath))) {
+      log.info('更新包文件已被删除，清除待安装更新信息:', info.downloadSavePath);
+      localStorage.removeItem(PENDING_UPDATE_STORAGE_KEY);
+      return null;
+    }
+
     log.info('检测到待安装更新:', info.versionName);
     return info;
   } catch (error) {
