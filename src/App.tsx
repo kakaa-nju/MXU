@@ -29,6 +29,7 @@ import {
   savePendingUpdateInfo,
   getPendingUpdateInfo,
   clearPendingUpdateInfo,
+  isDebugVersion,
 } from '@/services/updateService';
 import { Loader2, AlertCircle, RefreshCw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -432,57 +433,64 @@ function App() {
       }
 
       // 检查是否有待安装的更新（上次下载完成但未安装）
-      const pendingUpdate = await getPendingUpdateInfo();
-      if (pendingUpdate) {
-        log.info('检测到待安装更新:', pendingUpdate.versionName);
-        // 恢复更新状态
-        setUpdateInfo({
-          hasUpdate: true,
-          versionName: pendingUpdate.versionName,
-          releaseNote: pendingUpdate.releaseNote,
-          channel: pendingUpdate.channel,
-          fileSize: pendingUpdate.fileSize,
-          updateType: pendingUpdate.updateType,
-          downloadSource: pendingUpdate.downloadSource,
-        });
-        setDownloadSavePath(pendingUpdate.downloadSavePath);
-        setDownloadStatus('completed');
-        // 显示安装确认模态框并自动开始安装
-        setShowInstallConfirmModal(true);
-        useAppStore.getState().setInstallStatus('installing');
-        return;
+      // 调试版本跳过待安装更新检测
+      if (!isDebugVersion(result.interface.version)) {
+        const pendingUpdate = await getPendingUpdateInfo();
+        if (pendingUpdate) {
+          log.info('检测到待安装更新:', pendingUpdate.versionName);
+          // 恢复更新状态
+          setUpdateInfo({
+            hasUpdate: true,
+            versionName: pendingUpdate.versionName,
+            releaseNote: pendingUpdate.releaseNote,
+            channel: pendingUpdate.channel,
+            fileSize: pendingUpdate.fileSize,
+            updateType: pendingUpdate.updateType,
+            downloadSource: pendingUpdate.downloadSource,
+          });
+          setDownloadSavePath(pendingUpdate.downloadSavePath);
+          setDownloadStatus('completed');
+          // 显示安装确认模态框并自动开始安装
+          setShowInstallConfirmModal(true);
+          useAppStore.getState().setInstallStatus('installing');
+          return;
+        }
       }
 
-      // 自动检查更新并下载
+      // 自动检查更新并下载（调试版本跳过）
       if (result.interface.mirrorchyan_rid && result.interface.version) {
-        const appState = useAppStore.getState();
-        const downloadBasePath = appState.basePath;
-        checkAndPrepareDownload({
-          resourceId: result.interface.mirrorchyan_rid,
-          currentVersion: result.interface.version,
-          cdk: appState.mirrorChyanSettings.cdk || undefined,
-          channel: appState.mirrorChyanSettings.channel,
-          userAgent: 'MXU',
-          githubUrl: result.interface.github,
-          basePath: downloadBasePath,
-        })
-          .then((updateResult) => {
-            if (updateResult) {
-              setUpdateInfo(updateResult);
-              if (updateResult.hasUpdate) {
-                log.info(`发现新版本: ${updateResult.versionName}`);
-                // 强制弹出更新气泡
-                useAppStore.getState().setShowUpdateDialog(true);
-                // 有更新且有下载链接时自动开始下载
-                if (updateResult.downloadUrl) {
-                  startAutoDownload(updateResult, downloadBasePath);
+        if (isDebugVersion(result.interface.version)) {
+          log.info(`调试版本 (${result.interface.version})，跳过自动更新检查`);
+        } else {
+          const appState = useAppStore.getState();
+          const downloadBasePath = appState.basePath;
+          checkAndPrepareDownload({
+            resourceId: result.interface.mirrorchyan_rid,
+            currentVersion: result.interface.version,
+            cdk: appState.mirrorChyanSettings.cdk || undefined,
+            channel: appState.mirrorChyanSettings.channel,
+            userAgent: 'MXU',
+            githubUrl: result.interface.github,
+            basePath: downloadBasePath,
+          })
+            .then((updateResult) => {
+              if (updateResult) {
+                setUpdateInfo(updateResult);
+                if (updateResult.hasUpdate) {
+                  log.info(`发现新版本: ${updateResult.versionName}`);
+                  // 强制弹出更新气泡
+                  useAppStore.getState().setShowUpdateDialog(true);
+                  // 有更新且有下载链接时自动开始下载
+                  if (updateResult.downloadUrl) {
+                    startAutoDownload(updateResult, downloadBasePath);
+                  }
                 }
               }
-            }
-          })
-          .catch((err) => {
-            log.warn('自动检查更新失败:', err);
-          });
+            })
+            .catch((err) => {
+              log.warn('自动检查更新失败:', err);
+            });
+        }
       }
     } catch (err) {
       log.error('加载 interface.json 失败:', err);
