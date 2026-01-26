@@ -7,16 +7,16 @@ use windows::core::PCWSTR;
 use windows::Win32::System::Registry::{
     RegCloseKey, RegOpenKeyExW, HKEY, HKEY_LOCAL_MACHINE, KEY_READ,
 };
-use windows::Win32::System::SystemInformation::{
-    GetSystemDirectoryW, GetSystemWow64DirectoryW,
-};
+use windows::Win32::System::SystemInformation::{GetSystemDirectoryW, GetSystemWow64DirectoryW};
 
 /// 使用 Win32 API 获取系统目录路径
 fn get_system_directory() -> Option<PathBuf> {
     let mut buffer = [0u16; 260];
     let len = unsafe { GetSystemDirectoryW(Some(&mut buffer)) };
     if len > 0 && (len as usize) < buffer.len() {
-        Some(PathBuf::from(String::from_utf16_lossy(&buffer[..len as usize])))
+        Some(PathBuf::from(String::from_utf16_lossy(
+            &buffer[..len as usize],
+        )))
     } else {
         None
     }
@@ -27,7 +27,9 @@ fn get_system_wow64_directory() -> Option<PathBuf> {
     let mut buffer = [0u16; 260];
     let len = unsafe { GetSystemWow64DirectoryW(Some(&mut buffer)) };
     if len > 0 && (len as usize) < buffer.len() {
-        Some(PathBuf::from(String::from_utf16_lossy(&buffer[..len as usize])))
+        Some(PathBuf::from(String::from_utf16_lossy(
+            &buffer[..len as usize],
+        )))
     } else {
         None
     }
@@ -58,7 +60,9 @@ pub fn is_webview2_installed() -> bool {
             )
         };
         if result.is_ok() {
-            unsafe { let _ = RegCloseKey(hkey); }
+            unsafe {
+                let _ = RegCloseKey(hkey);
+            }
             registry_found = true;
             break;
         }

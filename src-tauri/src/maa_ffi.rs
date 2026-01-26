@@ -834,8 +834,8 @@ fn strip_ansi_escapes(s: &str) -> String {
 /// 发送 Agent 输出事件到前端
 pub fn emit_agent_output(instance_id: &str, stream: &str, line: &str) {
     // 使用 catch_unwind 捕获潜在的 panic
-    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-        match APP_HANDLE.lock() {
+    let result =
+        std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| match APP_HANDLE.lock() {
             Ok(guard) => {
                 if let Some(handle) = guard.as_ref() {
                     let event = AgentOutputEvent {
@@ -851,8 +851,7 @@ pub fn emit_agent_output(instance_id: &str, stream: &str, line: &str) {
             Err(e) => {
                 log::error!("[agent_output] Failed to lock APP_HANDLE: {}", e);
             }
-        }
-    }));
+        }));
 
     if let Err(e) = result {
         log::error!("[agent_output] Panic caught in emit_agent_output: {:?}", e);
@@ -884,7 +883,11 @@ extern "C" fn maa_event_callback(
             unsafe { from_cstr(details_json) }
         };
 
-        log::debug!("[callback] Received: message={}, details={}", message_str, details_str);
+        log::debug!(
+            "[callback] Received: message={}, details={}",
+            message_str,
+            details_str
+        );
 
         // 发送事件到前端
         match APP_HANDLE.lock() {

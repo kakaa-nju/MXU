@@ -1049,7 +1049,10 @@ pub fn maa_run_task(
     let entry_c = to_cstring(&entry);
     let override_c = to_cstring(&pipeline_override);
 
-    info!("Calling MaaTaskerPostTask: entry={}, override={}", entry, pipeline_override);
+    info!(
+        "Calling MaaTaskerPostTask: entry={}, override={}",
+        entry, pipeline_override
+    );
     let task_id =
         unsafe { (lib.maa_tasker_post_task)(tasker, entry_c.as_ptr(), override_c.as_ptr()) };
 
@@ -1367,10 +1370,7 @@ pub async fn maa_start_tasks(
 
         let tasker_ptr = instance.tasker.unwrap();
         debug!("[start_tasks] Tasker pointer for SendPtr: {:?}", tasker_ptr);
-        (
-            SendPtr::new(resource),
-            SendPtr::new(tasker_ptr),
-        )
+        (SendPtr::new(resource), SendPtr::new(tasker_ptr))
     };
     debug!("[start_tasks] Resource and tasker acquired, proceeding...");
 
@@ -1391,14 +1391,20 @@ pub async fn maa_start_tasks(
 
             debug!("[agent] Calling maa_agent_client_create_v2...");
             let agent_client = unsafe { (lib.maa_agent_client_create_v2)(std::ptr::null()) };
-            debug!("[agent] maa_agent_client_create_v2 returned: {:?}", agent_client);
+            debug!(
+                "[agent] maa_agent_client_create_v2 returned: {:?}",
+                agent_client
+            );
             if agent_client.is_null() {
                 error!("[agent] Failed to create agent client (null pointer)");
                 return Err("Failed to create agent client".to_string());
             }
 
             // 绑定资源
-            debug!("[agent] Binding resource to agent client, resource ptr: {:?}", resource.as_ptr());
+            debug!(
+                "[agent] Binding resource to agent client, resource ptr: {:?}",
+                resource.as_ptr()
+            );
             unsafe {
                 (lib.maa_agent_client_bind_resource)(agent_client, resource.as_ptr());
             }
@@ -1612,7 +1618,10 @@ pub async fn maa_start_tasks(
             let lib = guard.as_ref().ok_or("MaaFramework not initialized")?;
 
             info!("[agent] Setting agent connect timeout: {} ms", timeout_ms);
-            debug!("[agent] Calling maa_agent_client_set_timeout, agent_client ptr: {:?}", agent_client.as_ptr());
+            debug!(
+                "[agent] Calling maa_agent_client_set_timeout, agent_client ptr: {:?}",
+                agent_client.as_ptr()
+            );
             unsafe {
                 (lib.maa_agent_client_set_timeout)(agent_client.as_ptr(), timeout_ms);
             }
@@ -1628,9 +1637,15 @@ pub async fn maa_start_tasks(
         info!("[agent] Waiting for agent connection (non-blocking)...");
         debug!("[agent] Spawning blocking task for maa_agent_client_connect...");
         let connected = tokio::task::spawn_blocking(move || {
-            debug!("[agent] Inside spawn_blocking: calling connect_fn with ptr 0x{:x}", agent_ptr);
+            debug!(
+                "[agent] Inside spawn_blocking: calling connect_fn with ptr 0x{:x}",
+                agent_ptr
+            );
             let result = unsafe { connect_fn(agent_ptr as *mut MaaAgentClient) };
-            debug!("[agent] Inside spawn_blocking: connect_fn returned {}", result);
+            debug!(
+                "[agent] Inside spawn_blocking: connect_fn returned {}",
+                result
+            );
             result
         })
         .await
@@ -1693,11 +1708,17 @@ pub async fn maa_start_tasks(
     debug!("[start_tasks] MAA_LIBRARY lock re-acquired");
     let lib = guard.as_ref().ok_or("MaaFramework not initialized")?;
 
-    debug!("[start_tasks] Checking tasker inited status, tasker ptr: {:?}", tasker.as_ptr());
+    debug!(
+        "[start_tasks] Checking tasker inited status, tasker ptr: {:?}",
+        tasker.as_ptr()
+    );
     let inited = unsafe { (lib.maa_tasker_inited)(tasker.as_ptr()) };
     info!("[start_tasks] Tasker inited status: {}", inited);
     if inited == 0 {
-        error!("[start_tasks] Tasker not properly initialized, inited: {}", inited);
+        error!(
+            "[start_tasks] Tasker not properly initialized, inited: {}",
+            inited
+        );
         return Err("Tasker not properly initialized".to_string());
     }
 
@@ -1710,12 +1731,18 @@ pub async fn maa_start_tasks(
         let override_c = to_cstring(&task.pipeline_override);
         debug!("[start_tasks] CStrings created for task {}", idx);
 
-        info!("[start_tasks] Calling MaaTaskerPostTask: entry={}, override={}", task.entry, task.pipeline_override);
+        info!(
+            "[start_tasks] Calling MaaTaskerPostTask: entry={}, override={}",
+            task.entry, task.pipeline_override
+        );
         let task_id = unsafe {
             (lib.maa_tasker_post_task)(tasker.as_ptr(), entry_c.as_ptr(), override_c.as_ptr())
         };
 
-        info!("[start_tasks] MaaTaskerPostTask returned task_id: {}", task_id);
+        info!(
+            "[start_tasks] MaaTaskerPostTask returned task_id: {}",
+            task_id
+        );
 
         if task_id == MAA_INVALID_ID {
             warn!("[start_tasks] Failed to post task: {}", task.entry);
@@ -1723,10 +1750,16 @@ pub async fn maa_start_tasks(
         }
 
         task_ids.push(task_id);
-        debug!("[start_tasks] Task {} submitted successfully, task_id: {}", idx, task_id);
+        debug!(
+            "[start_tasks] Task {} submitted successfully, task_id: {}",
+            idx, task_id
+        );
     }
 
-    debug!("[start_tasks] All tasks submitted, total: {} task_ids", task_ids.len());
+    debug!(
+        "[start_tasks] All tasks submitted, total: {} task_ids",
+        task_ids.len()
+    );
 
     // 释放 guard 后再访问 instances
     debug!("[start_tasks] Releasing MAA_LIBRARY lock...");
@@ -1750,7 +1783,10 @@ pub async fn maa_start_tasks(
         info!("[start_tasks] Tasks started with agent");
     }
 
-    info!("[start_tasks] maa_start_tasks completed successfully, returning {} task_ids", task_ids.len());
+    info!(
+        "[start_tasks] maa_start_tasks completed successfully, returning {} task_ids",
+        task_ids.len()
+    );
     Ok(task_ids)
 }
 

@@ -7,8 +7,8 @@
 
 use std::io::Read;
 
-use super::dialog::CustomDialog;
 use super::detection::is_webview2_installed;
+use super::dialog::CustomDialog;
 
 /// Evergreen Bootstrapper 下载地址（fwlink 永久链接）。
 const DOWNLOAD_URL: &str = "https://go.microsoft.com/fwlink/p/?LinkId=2124703";
@@ -99,8 +99,7 @@ pub fn download_and_install() -> Result<(), String> {
 
     let buffer = download_result?;
 
-    std::fs::write(&installer_path, &buffer)
-        .map_err(|e| format!("保存安装程序失败: {}", e))?;
+    std::fs::write(&installer_path, &buffer).map_err(|e| format!("保存安装程序失败: {}", e))?;
 
     let status = std::process::Command::new(&installer_path)
         .args(["/silent", "/install"])
@@ -115,8 +114,7 @@ pub fn download_and_install() -> Result<(), String> {
     } else {
         Err(format!(
             "安装程序退出码: {} (0x{:X})",
-            exit_code,
-            exit_code as u32
+            exit_code, exit_code as u32
         ))
     }
 }

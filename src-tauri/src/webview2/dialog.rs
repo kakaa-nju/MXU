@@ -7,6 +7,7 @@ use std::sync::mpsc;
 use std::time::Duration;
 
 use super::to_wide;
+use windows::core::PCWSTR;
 use windows::Win32::Foundation::{HWND, LPARAM, LRESULT, WPARAM};
 use windows::Win32::Graphics::Gdi::{
     CreateFontIndirectW, DeleteObject, GetStockObject, GetSysColorBrush, UpdateWindow,
@@ -18,7 +19,6 @@ use windows::Win32::UI::Controls::{
     PBS_SMOOTH, PROGRESS_CLASSW,
 };
 use windows::Win32::UI::WindowsAndMessaging::*;
-use windows::core::PCWSTR;
 
 const SS_CENTER: u32 = 0x0001;
 const ES_MULTILINE: u32 = 0x0004;
@@ -190,186 +190,179 @@ impl CustomDialog {
 
         let (tx_hwnd, rx_hwnd) = mpsc::channel();
 
-        let handle = std::thread::spawn(move || {
-            unsafe {
-                let icc = INITCOMMONCONTROLSEX {
-                    dwSize: std::mem::size_of::<INITCOMMONCONTROLSEX>() as u32,
-                    dwICC: ICC_PROGRESS_CLASS,
-                };
-                let _ = InitCommonControlsEx(&icc);
+        let handle = std::thread::spawn(move || unsafe {
+            let icc = INITCOMMONCONTROLSEX {
+                dwSize: std::mem::size_of::<INITCOMMONCONTROLSEX>() as u32,
+                dwICC: ICC_PROGRESS_CLASS,
+            };
+            let _ = InitCommonControlsEx(&icc);
 
-                let hinstance = GetModuleHandleW(None).unwrap_or_default();
+            let hinstance = GetModuleHandleW(None).unwrap_or_default();
 
-                let font_for_controls = create_ui_font();
-                if let Some(h) = font_for_controls {
-                    DIALOG_STATE.with(|s| s.borrow_mut().hfont = Some(h));
-                }
-
-                let class_name = to_wide("WebView2CustomDialog");
-                let wc = WNDCLASSW {
-                    style: CS_HREDRAW | CS_VREDRAW,
-                    lpfnWndProc: Some(dialog_wnd_proc),
-                    hInstance: hinstance.into(),
-                    lpszClassName: PCWSTR::from_raw(class_name.as_ptr()),
-                    hbrBackground: GetSysColorBrush(COLOR_BTNFACE),
-                    ..Default::default()
-                };
-                RegisterClassW(&wc);
-
-                let title_wide = to_wide(&title_owned);
-                let hwnd = CreateWindowExW(
-                    WINDOW_EX_STYLE::default(),
-                    PCWSTR::from_raw(class_name.as_ptr()),
-                    PCWSTR::from_raw(title_wide.as_ptr()),
-                    WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU,
-                    CW_USEDEFAULT,
-                    CW_USEDEFAULT,
-                    width,
-                    height,
-                    None,
-                    None,
-                    hinstance,
-                    None,
-                )
-                .unwrap_or_default();
-
-                center_window(hwnd, width, height);
-
-                const MARGIN: i32 = 24;
-                const BTN_W: i32 = 96;
-                const BTN_H: i32 = 32;
-
-                match dialog_type {
-                    DialogType::Progress => {
-                        let status_text = to_wide(&message_owned);
-                        let status_hwnd = CreateWindowExW(
-                            WINDOW_EX_STYLE::default(),
-                            PCWSTR::from_raw(to_wide("STATIC").as_ptr()),
-                            PCWSTR::from_raw(status_text.as_ptr()),
-                            WS_CHILD | WS_VISIBLE | WINDOW_STYLE(SS_CENTER),
-                            MARGIN,
-                            MARGIN,
-                            width - 2 * MARGIN,
-                            24,
-                            hwnd,
-                            None,
-                            hinstance,
-                            None,
-                        )
-                        .unwrap_or_default();
-                        set_font(status_hwnd, font_for_controls);
-
-                        let progressbar_hwnd = CreateWindowExW(
-                            WINDOW_EX_STYLE::default(),
-                            PROGRESS_CLASSW,
-                            PCWSTR::null(),
-                            WS_CHILD | WS_VISIBLE | WINDOW_STYLE(PBS_SMOOTH as u32),
-                            MARGIN,
-                            MARGIN + 24 + 8,
-                            width - 2 * MARGIN,
-                            22,
-                            hwnd,
-                            None,
-                            hinstance,
-                            None,
-                        )
-                        .unwrap_or_default();
-                        let _ = SendMessageW(
-                            progressbar_hwnd,
-                            PBM_SETRANGE32,
-                            WPARAM(0),
-                            LPARAM(100),
-                        );
-
-                        DIALOG_STATE.with(|s| {
-                            let mut g = s.borrow_mut();
-                            g.status_hwnd = Some(status_hwnd);
-                            g.progress_hwnd = Some(progressbar_hwnd);
-                        });
-                    }
-                    DialogType::Success | DialogType::Error => {
-                        let text_height = height - (MARGIN + 12 + BTN_H + 12);
-                        let msg_text = to_wide(&message_owned);
-                        let status_hwnd = CreateWindowExW(
-                            WINDOW_EX_STYLE::default(),
-                            PCWSTR::from_raw(to_wide("EDIT").as_ptr()),
-                            PCWSTR::from_raw(msg_text.as_ptr()),
-                            WS_CHILD
-                                | WS_VISIBLE
-                                | WINDOW_STYLE(ES_MULTILINE | ES_READONLY | ES_AUTOVSCROLL),
-                            MARGIN,
-                            MARGIN,
-                            width - 2 * MARGIN,
-                            text_height,
-                            hwnd,
-                            None,
-                            hinstance,
-                            None,
-                        )
-                        .unwrap_or_default();
-                        set_font(status_hwnd, font_for_controls);
-
-                        let btn_text = to_wide("确定");
-                        let btn_hwnd = CreateWindowExW(
-                            WINDOW_EX_STYLE::default(),
-                            PCWSTR::from_raw(to_wide("BUTTON").as_ptr()),
-                            PCWSTR::from_raw(btn_text.as_ptr()),
-                            WS_CHILD | WS_VISIBLE | WINDOW_STYLE(BS_DEFPUSHBUTTON as u32),
-                            (width - BTN_W) / 2,
-                            height - 12 - BTN_H,
-                            BTN_W,
-                            BTN_H,
-                            hwnd,
-                            HMENU(ID_OK_BUTTON as *mut _),
-                            hinstance,
-                            None,
-                        )
-                        .unwrap_or_default();
-                        set_font(btn_hwnd, font_for_controls);
-
-                        DIALOG_STATE.with(|s| {
-                            let mut g = s.borrow_mut();
-                            g.status_hwnd = Some(status_hwnd);
-                            g.button_hwnd = Some(btn_hwnd);
-                        });
-                    }
-                }
-
-                let _ = tx_hwnd.send(hwnd.0 as usize);
-
-                let _ = ShowWindow(hwnd, SW_SHOW);
-                let _ = UpdateWindow(hwnd);
-
-                let mut msg = MSG::default();
-                let mut last_progress = 0u32;
-
-                loop {
-                    if dialog_type == DialogType::Progress {
-                        let current = progress_clone.load(Ordering::Relaxed);
-                        if current != last_progress {
-                            last_progress = current;
-                            let _ = SendMessageW(
-                                hwnd,
-                                WM_UPDATE_PROGRESS,
-                                WPARAM(current as usize),
-                                LPARAM(0),
-                            );
-                        }
-                    }
-
-                    if PeekMessageW(&mut msg, None, 0, 0, PM_REMOVE).as_bool() {
-                        if msg.message == WM_QUIT {
-                            break;
-                        }
-                        let _ = TranslateMessage(&msg);
-                        DispatchMessageW(&msg);
-                    } else {
-                        std::thread::sleep(Duration::from_millis(30));
-                    }
-                }
-
-                let _ = DestroyWindow(hwnd);
+            let font_for_controls = create_ui_font();
+            if let Some(h) = font_for_controls {
+                DIALOG_STATE.with(|s| s.borrow_mut().hfont = Some(h));
             }
+
+            let class_name = to_wide("WebView2CustomDialog");
+            let wc = WNDCLASSW {
+                style: CS_HREDRAW | CS_VREDRAW,
+                lpfnWndProc: Some(dialog_wnd_proc),
+                hInstance: hinstance.into(),
+                lpszClassName: PCWSTR::from_raw(class_name.as_ptr()),
+                hbrBackground: GetSysColorBrush(COLOR_BTNFACE),
+                ..Default::default()
+            };
+            RegisterClassW(&wc);
+
+            let title_wide = to_wide(&title_owned);
+            let hwnd = CreateWindowExW(
+                WINDOW_EX_STYLE::default(),
+                PCWSTR::from_raw(class_name.as_ptr()),
+                PCWSTR::from_raw(title_wide.as_ptr()),
+                WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU,
+                CW_USEDEFAULT,
+                CW_USEDEFAULT,
+                width,
+                height,
+                None,
+                None,
+                hinstance,
+                None,
+            )
+            .unwrap_or_default();
+
+            center_window(hwnd, width, height);
+
+            const MARGIN: i32 = 24;
+            const BTN_W: i32 = 96;
+            const BTN_H: i32 = 32;
+
+            match dialog_type {
+                DialogType::Progress => {
+                    let status_text = to_wide(&message_owned);
+                    let status_hwnd = CreateWindowExW(
+                        WINDOW_EX_STYLE::default(),
+                        PCWSTR::from_raw(to_wide("STATIC").as_ptr()),
+                        PCWSTR::from_raw(status_text.as_ptr()),
+                        WS_CHILD | WS_VISIBLE | WINDOW_STYLE(SS_CENTER),
+                        MARGIN,
+                        MARGIN,
+                        width - 2 * MARGIN,
+                        24,
+                        hwnd,
+                        None,
+                        hinstance,
+                        None,
+                    )
+                    .unwrap_or_default();
+                    set_font(status_hwnd, font_for_controls);
+
+                    let progressbar_hwnd = CreateWindowExW(
+                        WINDOW_EX_STYLE::default(),
+                        PROGRESS_CLASSW,
+                        PCWSTR::null(),
+                        WS_CHILD | WS_VISIBLE | WINDOW_STYLE(PBS_SMOOTH as u32),
+                        MARGIN,
+                        MARGIN + 24 + 8,
+                        width - 2 * MARGIN,
+                        22,
+                        hwnd,
+                        None,
+                        hinstance,
+                        None,
+                    )
+                    .unwrap_or_default();
+                    let _ = SendMessageW(progressbar_hwnd, PBM_SETRANGE32, WPARAM(0), LPARAM(100));
+
+                    DIALOG_STATE.with(|s| {
+                        let mut g = s.borrow_mut();
+                        g.status_hwnd = Some(status_hwnd);
+                        g.progress_hwnd = Some(progressbar_hwnd);
+                    });
+                }
+                DialogType::Success | DialogType::Error => {
+                    let text_height = height - (MARGIN + 12 + BTN_H + 12);
+                    let msg_text = to_wide(&message_owned);
+                    let status_hwnd = CreateWindowExW(
+                        WINDOW_EX_STYLE::default(),
+                        PCWSTR::from_raw(to_wide("EDIT").as_ptr()),
+                        PCWSTR::from_raw(msg_text.as_ptr()),
+                        WS_CHILD
+                            | WS_VISIBLE
+                            | WINDOW_STYLE(ES_MULTILINE | ES_READONLY | ES_AUTOVSCROLL),
+                        MARGIN,
+                        MARGIN,
+                        width - 2 * MARGIN,
+                        text_height,
+                        hwnd,
+                        None,
+                        hinstance,
+                        None,
+                    )
+                    .unwrap_or_default();
+                    set_font(status_hwnd, font_for_controls);
+
+                    let btn_text = to_wide("确定");
+                    let btn_hwnd = CreateWindowExW(
+                        WINDOW_EX_STYLE::default(),
+                        PCWSTR::from_raw(to_wide("BUTTON").as_ptr()),
+                        PCWSTR::from_raw(btn_text.as_ptr()),
+                        WS_CHILD | WS_VISIBLE | WINDOW_STYLE(BS_DEFPUSHBUTTON as u32),
+                        (width - BTN_W) / 2,
+                        height - 12 - BTN_H,
+                        BTN_W,
+                        BTN_H,
+                        hwnd,
+                        HMENU(ID_OK_BUTTON as *mut _),
+                        hinstance,
+                        None,
+                    )
+                    .unwrap_or_default();
+                    set_font(btn_hwnd, font_for_controls);
+
+                    DIALOG_STATE.with(|s| {
+                        let mut g = s.borrow_mut();
+                        g.status_hwnd = Some(status_hwnd);
+                        g.button_hwnd = Some(btn_hwnd);
+                    });
+                }
+            }
+
+            let _ = tx_hwnd.send(hwnd.0 as usize);
+
+            let _ = ShowWindow(hwnd, SW_SHOW);
+            let _ = UpdateWindow(hwnd);
+
+            let mut msg = MSG::default();
+            let mut last_progress = 0u32;
+
+            loop {
+                if dialog_type == DialogType::Progress {
+                    let current = progress_clone.load(Ordering::Relaxed);
+                    if current != last_progress {
+                        last_progress = current;
+                        let _ = SendMessageW(
+                            hwnd,
+                            WM_UPDATE_PROGRESS,
+                            WPARAM(current as usize),
+                            LPARAM(0),
+                        );
+                    }
+                }
+
+                if PeekMessageW(&mut msg, None, 0, 0, PM_REMOVE).as_bool() {
+                    if msg.message == WM_QUIT {
+                        break;
+                    }
+                    let _ = TranslateMessage(&msg);
+                    DispatchMessageW(&msg);
+                } else {
+                    std::thread::sleep(Duration::from_millis(30));
+                }
+            }
+
+            let _ = DestroyWindow(hwnd);
         });
 
         let addr = rx_hwnd.recv_timeout(Duration::from_millis(500)).ok()?;
