@@ -352,7 +352,30 @@ function App() {
         await setWindowSize(config.settings.windowSize.width, config.settings.windowSize.height);
       }
       if (config.settings.windowPosition) {
-        await setWindowPosition(config.settings.windowPosition.x, config.settings.windowPosition.y);
+        const { x, y } = config.settings.windowPosition;
+        // 先检查位置是否在可见显示器范围内
+        try {
+          const { getCurrentWindow, availableMonitors } = await import('@tauri-apps/api/window');
+          const monitors = await availableMonitors();
+          // 允许窗口左上角稍微超出屏幕边缘（标题栏仍可见）
+          const isOnScreen = monitors.some((m) => {
+            const mx = m.position.x;
+            const my = m.position.y;
+            const mw = m.size.width;
+            const mh = m.size.height;
+            return x >= mx - 100 && x < mx + mw && y >= my - 50 && y < my + mh;
+          });
+          if (isOnScreen) {
+            await setWindowPosition(x, y);
+          } else {
+            await getCurrentWindow().center();
+            setWindowPositionStore(undefined);
+          }
+        } catch (err) {
+          log.warn('检查窗口位置失败，居中显示:', err);
+          const { getCurrentWindow } = await import('@tauri-apps/api/window');
+          await getCurrentWindow().center();
+        }
       }
 
       // 从后端恢复 MAA 运行时状态（连接状态、资源加载状态、设备缓存等）
@@ -605,11 +628,14 @@ function App() {
         const currentWindow = getCurrentWindow();
 
         unlistenResize = await currentWindow.onResized(async () => {
-          // 防抖处理，避免频繁保存
           if (resizeTimeout) {
             clearTimeout(resizeTimeout);
           }
           resizeTimeout = setTimeout(async () => {
+            // 最大化时不保存大小
+            const isMaximized = await currentWindow.isMaximized();
+            if (isMaximized) return;
+
             const size = await getWindowSize();
             if (size && isValidWindowSize(size.width, size.height)) {
               setWindowSizeStore(size);
@@ -618,11 +644,14 @@ function App() {
         });
 
         unlistenMove = await currentWindow.onMoved(async () => {
-          // 防抖处理，避免频繁保存
           if (moveTimeout) {
             clearTimeout(moveTimeout);
           }
           moveTimeout = setTimeout(async () => {
+            // 最大化时不保存位置
+            const isMaximized = await currentWindow.isMaximized();
+            if (isMaximized) return;
+
             const position = await getWindowPosition();
             if (position) {
               setWindowPositionStore(position);
