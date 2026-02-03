@@ -467,6 +467,8 @@ export default {
     restartRequired: '업데이트가 설치되었습니다. 변경 사항을 적용하려면 재시작하세요',
     restartNow: '지금 재시작',
     restarting: '재시작 중...',
+    installerOpened: '설치 프로그램이 열렸습니다',
+    installerOpenedHint: '설치 프로그램을 완료한 후 이 앱을 다시 시작하세요',
     // 업데이트 완료 후
     updateCompleteTitle: '업데이트 완료',
     updateCompleteMessage: '최신 버전으로 성공적으로 업데이트되었습니다',

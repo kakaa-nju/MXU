@@ -469,6 +469,8 @@ export default {
     restartRequired: '更新已安装，请重启应用以生效',
     restartNow: '立即重启',
     restarting: '正在重启...',
+    installerOpened: '安装程序已打开',
+    installerOpenedHint: '请完成安装程序的操作，安装完成后重新启动本应用即可',
     // 更新完成后
     updateCompleteTitle: '更新完成',
     updateCompleteMessage: '已成功更新到最新版本',

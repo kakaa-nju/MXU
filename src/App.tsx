@@ -437,18 +437,46 @@ function App() {
       // 检查是否刚更新完成（重启后）
       const updateCompleteInfo = consumeUpdateCompleteInfo();
       if (updateCompleteInfo) {
-        log.info('检测到刚更新完成:', updateCompleteInfo.newVersion);
-        // 清除待安装更新信息（安装已完成）
-        clearPendingUpdateInfo();
-        setJustUpdatedInfo({
-          previousVersion: updateCompleteInfo.previousVersion,
-          newVersion: updateCompleteInfo.newVersion,
-          releaseNote: updateCompleteInfo.releaseNote,
-          channel: updateCompleteInfo.channel,
-        });
-        setShowInstallConfirmModal(true);
-        // 更新完成后跳过自动检查更新
-        return;
+        const currentVersionNow = result.interface.version || '';
+
+        // 如果需要验证版本（exe/dmg 安装场景）
+        if (updateCompleteInfo.requireVersionCheck) {
+          log.info(
+            `检测到待验证版本更新: 目标=${updateCompleteInfo.newVersion}, 当前=${currentVersionNow}`,
+          );
+
+          // 比较版本：如果当前版本已经是目标版本，视为安装完成
+          const normalizeVersion = (v: string) => v.replace(/^v/i, '').toLowerCase();
+          if (normalizeVersion(currentVersionNow) === normalizeVersion(updateCompleteInfo.newVersion)) {
+            log.info('版本已更新到目标版本，显示更新完成弹窗');
+            setJustUpdatedInfo({
+              previousVersion: updateCompleteInfo.previousVersion,
+              newVersion: updateCompleteInfo.newVersion,
+              releaseNote: updateCompleteInfo.releaseNote,
+              channel: updateCompleteInfo.channel,
+            });
+            setShowInstallConfirmModal(true);
+            // 更新完成后跳过自动检查更新
+            return;
+          } else {
+            log.info('版本未更新，继续正常流程');
+            // 版本未更新，继续正常流程（可能用户取消了安装）
+          }
+        } else {
+          // 直接显示更新完成弹窗（zip 等自动安装场景）
+          log.info('检测到刚更新完成:', updateCompleteInfo.newVersion);
+          // 清除待安装更新信息（安装已完成）
+          clearPendingUpdateInfo();
+          setJustUpdatedInfo({
+            previousVersion: updateCompleteInfo.previousVersion,
+            newVersion: updateCompleteInfo.newVersion,
+            releaseNote: updateCompleteInfo.releaseNote,
+            channel: updateCompleteInfo.channel,
+          });
+          setShowInstallConfirmModal(true);
+          // 更新完成后跳过自动检查更新
+          return;
+        }
       }
 
       // 检查是否有待安装的更新（上次下载完成但未安装）

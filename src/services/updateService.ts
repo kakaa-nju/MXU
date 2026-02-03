@@ -1083,6 +1083,12 @@ export interface UpdateCompleteInfo {
   releaseNote: string;
   channel?: string;
   timestamp: number;
+  /**
+   * 是否需要验证版本（用于 exe/dmg 安装程序场景）
+   * - true: 需要验证当前版本是否已更新到 newVersion，未更新则忽略
+   * - false/undefined: 直接显示更新完成弹窗
+   */
+  requireVersionCheck?: boolean;
 }
 
 /**

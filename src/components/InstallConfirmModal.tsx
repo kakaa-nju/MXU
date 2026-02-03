@@ -205,18 +205,32 @@ export function InstallConfirmModal() {
     t,
   ]);
 
+  // 判断当前是否为可执行安装程序（exe/dmg）
+  const isExeInstaller = downloadSavePath && isExecutableInstaller(downloadSavePath);
+
   // 安装完成后自动重启（对于可执行安装程序什么都不做，让安装程序自己处理）
   useEffect(() => {
     if (installStatus === 'completed' && !autoRestartTriggered.current && !isJustUpdatedMode) {
       autoRestartTriggered.current = true;
-      // 如果是可执行安装程序（exe/dmg），什么都不做，让打开的安装程序处理后续
-      if (downloadSavePath && isExecutableInstaller(downloadSavePath)) {
-        // 不关闭弹窗、不重启、不清除更新信息
+      // 如果是可执行安装程序（exe/dmg），保存更新完成信息（带版本验证标记），让下次启动时检测
+      // 用户需要手动运行安装程序，安装完成后重新启动应用会自动检测版本变化
+      if (isExeInstaller && updateInfo) {
+        // 保存更新完成信息（requireVersionCheck=true 表示需要验证版本）
+        saveUpdateCompleteInfo({
+          previousVersion: currentVersion,
+          newVersion: updateInfo.versionName,
+          releaseNote: updateInfo.releaseNote,
+          channel: updateInfo.channel,
+          timestamp: Date.now(),
+          requireVersionCheck: true,
+        });
+        clearPendingUpdateInfo();
+        // 不关闭弹窗、不重启
         return;
       }
       handleRestart();
     }
-  }, [installStatus, isJustUpdatedMode, handleRestart, downloadSavePath]);
+  }, [installStatus, isJustUpdatedMode, handleRestart, isExeInstaller, updateInfo, currentVersion]);
 
   // 如果没有打开模态框，或者既没有更新信息也没有刚更新完成信息，则不渲染
   if (!showInstallConfirmModal || (!updateInfo && !justUpdatedInfo)) return null;
@@ -296,11 +310,24 @@ export function InstallConfirmModal() {
             </div>
           )}
 
-          {/* 安装完成状态（正在重启） */}
-          {!isJustUpdatedMode && isInstallComplete && (
+          {/* 安装完成状态（正在重启）- 对于可执行安装程序不显示 */}
+          {!isJustUpdatedMode && isInstallComplete && !isExeInstaller && (
             <div className="flex flex-col items-center gap-4 py-4">
               <Loader2 className="w-12 h-12 text-accent animate-spin" />
               <p className="text-sm text-text-primary font-medium">{t('mirrorChyan.restarting')}</p>
+            </div>
+          )}
+
+          {/* 可执行安装程序已打开状态 - 提示用户手动操作 */}
+          {!isJustUpdatedMode && isInstallComplete && isExeInstaller && (
+            <div className="flex flex-col items-center gap-4 py-4">
+              <CheckCircle className="w-12 h-12 text-success" />
+              <div className="text-center space-y-2">
+                <p className="text-sm text-text-primary font-medium">
+                  {t('mirrorChyan.installerOpened')}
+                </p>
+                <p className="text-xs text-text-muted">{t('mirrorChyan.installerOpenedHint')}</p>
+              </div>
             </div>
           )}
 

@@ -474,6 +474,8 @@ export default {
     restartRequired: 'アップデートがインストールされました。変更を適用するには再起動してください',
     restartNow: '今すぐ再起動',
     restarting: '再起動中...',
+    installerOpened: 'インストーラーが開きました',
+    installerOpenedHint: 'インストーラーの操作を完了してください。インストール完了後、このアプリを再起動してください',
     // アップデート完了後
     updateCompleteTitle: 'アップデート完了',
     updateCompleteMessage: '最新バージョンへのアップデートに成功しました',

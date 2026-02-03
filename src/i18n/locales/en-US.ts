@@ -476,6 +476,8 @@ export default {
     restartRequired: 'Update installed. Please restart to apply changes.',
     restartNow: 'Restart Now',
     restarting: 'Restarting...',
+    installerOpened: 'Installer Opened',
+    installerOpenedHint: 'Please complete the installer, then restart this app after installation',
     // After update complete
     updateCompleteTitle: 'Update Complete',
     updateCompleteMessage: 'Successfully updated to the latest version',

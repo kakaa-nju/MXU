@@ -466,6 +466,8 @@ export default {
     restartRequired: '更新已安裝，請重啟應用程式以生效',
     restartNow: '立即重啟',
     restarting: '正在重啟...',
+    installerOpened: '安裝程式已開啟',
+    installerOpenedHint: '請完成安裝程式的操作，安裝完成後重新啟動本應用程式即可',
     // 更新完成後
     updateCompleteTitle: '更新完成',
     updateCompleteMessage: '已成功更新到最新版本',
