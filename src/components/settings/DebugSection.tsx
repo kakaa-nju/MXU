@@ -1,14 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  Bug,
-  RefreshCw,
-  FolderOpen,
-  ScrollText,
-  Trash2,
-  Network,
-  Archive,
-} from 'lucide-react';
+import { Bug, RefreshCw, FolderOpen, ScrollText, Trash2, Network, Archive } from 'lucide-react';
 
 import { useAppStore } from '@/stores/appStore';
 import { clearAllCache, getCacheStats } from '@/services/cacheService';
