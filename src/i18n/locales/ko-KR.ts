@@ -105,7 +105,8 @@ export default {
     waitUntil: {
       label: '⏰ 시간까지 대기',
       optionLabel: '시간 설정',
-      optionDescription: '지정된 시간까지 대기한 후 계속합니다. 24시간 이내만 지원됩니다. 대상 시간이 이미 지났으면 다음 날 해당 시간까지 대기합니다',
+      optionDescription:
+        '지정된 시간까지 대기한 후 계속합니다. 24시간 이내만 지원됩니다. 대상 시간이 이미 지났으면 다음 날 해당 시간까지 대기합니다',
       inputLabel: '대상 시간',
     },
     launch: {

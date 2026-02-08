@@ -1,13 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  Search,
-  Plus,
-  Sparkles,
-  Loader2,
-  AlertCircle,
-  Play,
-} from 'lucide-react';
+import { Search, Plus, Sparkles, Loader2, AlertCircle, Play } from 'lucide-react';
 import { useAppStore } from '@/stores/appStore';
 import { maaService } from '@/services/maaService';
 import { useResolvedContent } from '@/services/contentResolver';
@@ -316,9 +309,7 @@ export function AddTaskPanel() {
         registerMaaTaskMapping(instance.id, maaTaskId, addedTask.id);
         // 注册 task_id 与任务名的映射
         const taskDisplayName =
-          addedTask.customName ||
-          resolveI18nText(task.label, langKey) ||
-          addedTask.taskName;
+          addedTask.customName || resolveI18nText(task.label, langKey) || addedTask.taskName;
         registerTaskIdName(maaTaskId, taskDisplayName);
 
         // 设置任务状态为 pending

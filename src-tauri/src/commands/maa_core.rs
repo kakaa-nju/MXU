@@ -516,10 +516,8 @@ pub fn maa_connect_controller(
                 let uuid_c = to_cstring(uuid_str);
 
                 debug!("Calling MaaPlayCoverControllerCreate...");
-                let ctrl = (lib.maa_playcover_controller_create)(
-                    address_c.as_ptr(),
-                    uuid_c.as_ptr(),
-                );
+                let ctrl =
+                    (lib.maa_playcover_controller_create)(address_c.as_ptr(), uuid_c.as_ptr());
                 debug!("MaaPlayCoverControllerCreate returned: {:?}", ctrl);
                 ctrl
             }
@@ -923,7 +921,10 @@ pub fn maa_stop_task(state: State<Arc<MaaState>>, instance_id: String) -> Result
                 .map(|t| t.elapsed())
                 .unwrap_or(Duration::from_secs(0));
             if elapsed < Duration::from_millis(500) {
-                debug!("maa_stop_task ignored: stop already in progress ({:?})", elapsed);
+                debug!(
+                    "maa_stop_task ignored: stop already in progress ({:?})",
+                    elapsed
+                );
                 return Ok(());
             }
             debug!(

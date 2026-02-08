@@ -165,9 +165,7 @@ function OptionListRenderer({
   // 获取选项定义（支持 MXU 特殊任务）
   const getOptionDef = (optionKey: string) => {
     const isMxuOption = optionKey.startsWith('__MXU_');
-    return isMxuOption 
-      ? findMxuOptionByKey(optionKey) 
-      : projectInterface?.option?.[optionKey];
+    return isMxuOption ? findMxuOptionByKey(optionKey) : projectInterface?.option?.[optionKey];
   };
 
   // 将选项分组：连续 5 个以上无子选项的 switch 合并为网格
@@ -216,15 +214,17 @@ function OptionListRenderer({
       const value = optionValues[optionKey];
       const isChecked = value?.type === 'switch' ? value.value : false;
       const isMxuOption = optionKey.startsWith('__MXU_');
-      
+
       // 对于 MXU 内置选项，使用 t() 翻译；否则使用 resolveI18nText
       const label = isMxuOption
         ? t(optionDef?.label || optionKey)
         : resolveI18nText(optionDef?.label, langKey) || optionKey;
       const description = isMxuOption
-        ? (optionDef?.description ? t(optionDef.description) : undefined)
+        ? optionDef?.description
+          ? t(optionDef.description)
+          : undefined
         : resolveI18nText(optionDef?.description, langKey);
-      
+
       return {
         optionKey,
         label,

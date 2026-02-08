@@ -105,7 +105,8 @@ export default {
     waitUntil: {
       label: '⏰ 時刻まで待機',
       optionLabel: '時刻設定',
-      optionDescription: '指定した時刻まで待機してから続行します。24時間以内のみ対応。目標時刻が過ぎている場合は翌日のその時刻まで待機します',
+      optionDescription:
+        '指定した時刻まで待機してから続行します。24時間以内のみ対応。目標時刻が過ぎている場合は翌日のその時刻まで待機します',
       inputLabel: '目標時刻',
     },
     launch: {

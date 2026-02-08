@@ -219,12 +219,7 @@ function InputField({
             className="flex-1"
           />
         ) : input.input_type === 'time' ? (
-          <TimeInput
-            value={value}
-            onChange={onChange}
-            disabled={disabled}
-            className="flex-1"
-          />
+          <TimeInput value={value} onChange={onChange} disabled={disabled} className="flex-1" />
         ) : (
           <TextInput
             value={value}

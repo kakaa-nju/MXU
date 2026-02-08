@@ -234,7 +234,9 @@ function InstanceCard({ instanceId, instanceName, isActive, onSelect }: Instance
             // MXU 特殊任务的 label 是 MXU i18n key，需要用 t() 翻译
             const taskDisplayName =
               selectedTask.customName ||
-              (specialTask && taskDef.label ? t(taskDef.label) : resolveI18nText(taskDef.label, translations)) ||
+              (specialTask && taskDef.label
+                ? t(taskDef.label)
+                : resolveI18nText(taskDef.label, translations)) ||
               selectedTask.taskName;
             registerEntryTaskName(taskDef.entry, taskDisplayName);
           }
@@ -286,7 +288,9 @@ function InstanceCard({ instanceId, instanceName, isActive, onSelect }: Instance
                 projectInterface?.task.find((t) => t.name === enabledTasks[index].taskName);
               const taskDisplayName =
                 enabledTasks[index].customName ||
-                (specialTask && taskDef?.label ? t(taskDef.label) : resolveI18nText(taskDef?.label, translations)) ||
+                (specialTask && taskDef?.label
+                  ? t(taskDef.label)
+                  : resolveI18nText(taskDef?.label, translations)) ||
                 enabledTasks[index].taskName;
               registerTaskIdName(maaTaskId, taskDisplayName);
             }

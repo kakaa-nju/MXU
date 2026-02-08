@@ -152,10 +152,7 @@ extern "C" fn mxu_waituntil_action(
             .date_naive()
             .and_hms_opt(target_hour, target_minute, 0)
             .unwrap();
-        let today_target = match chrono::Local
-            .from_local_datetime(&today_target)
-            .single()
-        {
+        let today_target = match chrono::Local.from_local_datetime(&today_target).single() {
             Some(dt) => dt,
             None => {
                 warn!(
@@ -271,10 +268,7 @@ extern "C" fn mxu_launch_action(
                         "[MXU_LAUNCH] Failed to parse arguments with shell_words ({}); falling back to whitespace split: {}",
                         e, args_str
                     );
-                    args_str
-                        .split_whitespace()
-                        .map(|s| s.to_string())
-                        .collect()
+                    args_str.split_whitespace().map(|s| s.to_string()).collect()
                 }
             }
         };
@@ -471,7 +465,10 @@ extern "C" fn mxu_notify_action(
             .unwrap_or("")
             .to_string();
 
-        info!("[MXU_NOTIFY] Sending notification: title={}, body={}", title, body);
+        info!(
+            "[MXU_NOTIFY] Sending notification: title={}, body={}",
+            title, body
+        );
 
         match notify_rust::Notification::new()
             .summary(&title)
@@ -588,10 +585,7 @@ fn kill_process_by_name(name: &str) -> u8 {
 
     #[cfg(windows)]
     {
-        match Command::new("taskkill")
-            .args(["/F", "/IM", name])
-            .output()
-        {
+        match Command::new("taskkill").args(["/F", "/IM", name]).output() {
             Ok(output) => {
                 let stdout = String::from_utf8_lossy(&output.stdout);
                 let stderr = String::from_utf8_lossy(&output.stderr);
@@ -719,7 +713,10 @@ fn execute_power_shutdown() -> u8 {
 
     #[cfg(windows)]
     {
-        match Command::new("shutdown").args(["/s", "/f", "/t", "0"]).spawn() {
+        match Command::new("shutdown")
+            .args(["/s", "/f", "/t", "0"])
+            .spawn()
+        {
             Ok(_) => {
                 info!("[MXU_POWER] Shutdown command issued");
                 1u8
@@ -768,7 +765,10 @@ fn execute_power_restart() -> u8 {
 
     #[cfg(windows)]
     {
-        match Command::new("shutdown").args(["/r", "/f", "/t", "0"]).spawn() {
+        match Command::new("shutdown")
+            .args(["/r", "/f", "/t", "0"])
+            .spawn()
+        {
             Ok(_) => {
                 info!("[MXU_POWER] Restart command issued");
                 1u8

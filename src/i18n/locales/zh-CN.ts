@@ -105,7 +105,8 @@ export default {
     waitUntil: {
       label: '⏰ 定时等待',
       optionLabel: '时间设置',
-      optionDescription: '等待到指定时间点后继续执行，仅支持 24 小时内。若目标时间已过则等待到次日该时间',
+      optionDescription:
+        '等待到指定时间点后继续执行，仅支持 24 小时内。若目标时间已过则等待到次日该时间',
       inputLabel: '目标时间',
     },
     launch: {

@@ -106,7 +106,8 @@ export default {
     waitUntil: {
       label: '⏰ Wait Until',
       optionLabel: 'Time Settings',
-      optionDescription: 'Waits until the specified time before continuing. Only supports within 24 hours. If the target time has passed today, it will wait until that time tomorrow',
+      optionDescription:
+        'Waits until the specified time before continuing. Only supports within 24 hours. If the target time has passed today, it will wait until that time tomorrow',
       inputLabel: 'Target Time',
     },
     launch: {
