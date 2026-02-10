@@ -328,7 +328,7 @@ export function AddTaskPanel() {
   }
 
   return (
-    <div className="border-t border-border bg-bg-tertiary">
+    <div id="add-task-panel" className="border-t border-border bg-bg-tertiary">
       {/* 搜索框 */}
       <div className="p-2 border-b border-border">
         <div className="relative">

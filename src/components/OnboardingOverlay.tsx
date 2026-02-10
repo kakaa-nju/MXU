@@ -51,8 +51,30 @@ export function OnboardingOverlay() {
           description: t('onboarding.message'),
           side: 'left',
           align: 'start',
-          // 单步引导，只显示关闭按钮
-          showButtons: ['close'],
+          showButtons: ['next', 'close'],
+          nextBtnText: t('onboarding.next'),
+        },
+      },
+      {
+        element: '#add-task-panel',
+        popover: {
+          title: t('onboarding.addTaskTitle'),
+          description: t('onboarding.addTaskMessage'),
+          side: 'top',
+          align: 'center',
+          showButtons: ['next', 'close'],
+          nextBtnText: t('onboarding.next'),
+        },
+      },
+      {
+        element: '#tab-bar-area',
+        popover: {
+          title: t('onboarding.tabBarTitle'),
+          description: t('onboarding.tabBarMessage'),
+          side: 'bottom',
+          align: 'start',
+          showButtons: ['next', 'close'],
+          doneBtnText: t('onboarding.gotIt'),
         },
       },
     ];

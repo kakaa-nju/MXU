@@ -281,7 +281,7 @@ export function TabBar() {
   return (
     <div className="flex items-center h-10 bg-bg-secondary border-b border-border select-none">
       {/* 标签页区域 */}
-      <div className="flex-1 flex items-center h-full overflow-x-auto">
+      <div id="tab-bar-area" className="flex-1 flex items-center h-full overflow-x-auto">
         {instances.map((instance, index) => {
           const isAnimatingIn = animatingTabIds.includes(instance.id);
           const isClosing = closingTabIds.includes(instance.id);

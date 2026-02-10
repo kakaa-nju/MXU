@@ -1230,6 +1230,7 @@ export function Toolbar({ showAddPanel, onToggleAddPanel }: ToolbarProps) {
 
         {/* 添加任务 */}
         <button
+          id="add-task-button"
           onClick={onToggleAddPanel}
           className={clsx(
             'flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-sm transition-colors',
