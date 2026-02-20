@@ -238,7 +238,10 @@ function OptionListRenderer({
         : resolveI18nText(optionDef?.description, langKey);
 
       // 检查选项是否与当前控制器不兼容
-      const controllerIncompatible = isOptionControllerIncompatible(optionDef, currentControllerName);
+      const controllerIncompatible = isOptionControllerIncompatible(
+        optionDef,
+        currentControllerName,
+      );
 
       return {
         optionKey,
@@ -265,7 +268,10 @@ function OptionListRenderer({
           );
         }
         const optionDef = getOptionDef(group.optionKey);
-        const optionControllerIncompatible = isOptionControllerIncompatible(optionDef, currentControllerName);
+        const optionControllerIncompatible = isOptionControllerIncompatible(
+          optionDef,
+          currentControllerName,
+        );
         return (
           <OptionEditor
             key={group.optionKey}

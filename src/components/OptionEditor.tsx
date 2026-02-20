@@ -67,7 +67,13 @@ function OptionLabel({
 }) {
   return (
     <div className="flex items-center gap-1.5 min-w-[80px]">
-      {icon && <AsyncIcon icon={icon} basePath={basePath} className="w-4 h-4 object-contain flex-shrink-0" />}
+      {icon && (
+        <AsyncIcon
+          icon={icon}
+          basePath={basePath}
+          className="w-4 h-4 object-contain flex-shrink-0"
+        />
+      )}
       <span className="text-sm text-text-secondary">{label}</span>
     </div>
   );
@@ -341,8 +347,18 @@ export function OptionEditor({
 
     return (
       <div className={clsx('space-y-2', depth > 0 && 'ml-4 pl-3 border-l-2 border-border')}>
-        <div className={clsx('flex items-center justify-between', controllerIncompatible && 'opacity-60')}>
-          <OptionLabelWithIncompatible label={optionLabel} icon={optionDef.icon} basePath={basePath} controllerIncompatible={controllerIncompatible} />
+        <div
+          className={clsx(
+            'flex items-center justify-between',
+            controllerIncompatible && 'opacity-60',
+          )}
+        >
+          <OptionLabelWithIncompatible
+            label={optionLabel}
+            icon={optionDef.icon}
+            basePath={basePath}
+            controllerIncompatible={controllerIncompatible}
+          />
           <SwitchButton
             value={isChecked}
             onChange={(checked) => {
@@ -384,8 +400,19 @@ export function OptionEditor({
     const inputValues = value?.type === 'input' ? value.values : {};
 
     return (
-      <div className={clsx('space-y-2', depth > 0 && 'ml-4 pl-3 border-l-2 border-border', controllerIncompatible && 'opacity-60')}>
-        <OptionLabelWithIncompatible label={optionLabel} icon={optionDef.icon} basePath={basePath} controllerIncompatible={controllerIncompatible} />
+      <div
+        className={clsx(
+          'space-y-2',
+          depth > 0 && 'ml-4 pl-3 border-l-2 border-border',
+          controllerIncompatible && 'opacity-60',
+        )}
+      >
+        <OptionLabelWithIncompatible
+          label={optionLabel}
+          icon={optionDef.icon}
+          basePath={basePath}
+          controllerIncompatible={controllerIncompatible}
+        />
         <OptionDescription
           description={optionDescription}
           basePath={basePath}
@@ -428,9 +455,20 @@ export function OptionEditor({
   const SelectComponent = useComboBox ? OptionSelectComboBox : OptionSelectDropdown;
 
   return (
-    <div className={clsx('space-y-2', depth > 0 && 'ml-4 pl-3 border-l-2 border-border', controllerIncompatible && 'opacity-60')}>
+    <div
+      className={clsx(
+        'space-y-2',
+        depth > 0 && 'ml-4 pl-3 border-l-2 border-border',
+        controllerIncompatible && 'opacity-60',
+      )}
+    >
       <div className="flex items-center gap-3">
-        <OptionLabelWithIncompatible label={optionLabel} icon={optionDef.icon} basePath={basePath} controllerIncompatible={controllerIncompatible} />
+        <OptionLabelWithIncompatible
+          label={optionLabel}
+          icon={optionDef.icon}
+          basePath={basePath}
+          controllerIncompatible={controllerIncompatible}
+        />
         <SelectComponent
           className="flex-1"
           value={selectedCaseName}
@@ -615,7 +653,13 @@ function OptionSelectDropdown({
         aria-controls={listboxId}
       >
         <span className="flex items-center gap-1.5 truncate">
-          {selectedOption?.icon && <AsyncIcon icon={selectedOption.icon} basePath={basePath} className="w-4 h-4 object-contain flex-shrink-0" />}
+          {selectedOption?.icon && (
+            <AsyncIcon
+              icon={selectedOption.icon}
+              basePath={basePath}
+              className="w-4 h-4 object-contain flex-shrink-0"
+            />
+          )}
           {selectedOption?.label}
         </span>
         <ChevronDown
@@ -658,7 +702,13 @@ function OptionSelectDropdown({
                 aria-selected={isSelected}
               >
                 <span className="flex items-center gap-1.5 truncate">
-                  {opt.icon && <AsyncIcon icon={opt.icon} basePath={basePath} className="w-4 h-4 object-contain flex-shrink-0" />}
+                  {opt.icon && (
+                    <AsyncIcon
+                      icon={opt.icon}
+                      basePath={basePath}
+                      className="w-4 h-4 object-contain flex-shrink-0"
+                    />
+                  )}
                   {opt.label}
                 </span>
                 {isSelected && <Check className="w-4 h-4 flex-shrink-0" />}
@@ -819,7 +869,13 @@ function OptionSelectComboBox({
         aria-controls={listboxId}
       >
         <span className="flex items-center gap-1.5 truncate">
-          {selectedOption?.icon && <AsyncIcon icon={selectedOption.icon} basePath={basePath} className="w-4 h-4 object-contain flex-shrink-0" />}
+          {selectedOption?.icon && (
+            <AsyncIcon
+              icon={selectedOption.icon}
+              basePath={basePath}
+              className="w-4 h-4 object-contain flex-shrink-0"
+            />
+          )}
           {selectedOption?.label}
         </span>
         <ChevronDown
@@ -887,7 +943,13 @@ function OptionSelectComboBox({
                     aria-selected={isSelected}
                   >
                     <span className="flex items-center gap-1.5 truncate">
-                      {opt.icon && <AsyncIcon icon={opt.icon} basePath={basePath} className="w-4 h-4 object-contain flex-shrink-0" />}
+                      {opt.icon && (
+                        <AsyncIcon
+                          icon={opt.icon}
+                          basePath={basePath}
+                          className="w-4 h-4 object-contain flex-shrink-0"
+                        />
+                      )}
                       {opt.label}
                     </span>
                     {isSelected && <Check className="w-4 h-4 flex-shrink-0" />}

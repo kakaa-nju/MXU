@@ -448,7 +448,7 @@ pub fn maa_stop_agent(state: State<'_, Arc<MaaState>>, instance_id: String) -> R
         // 取出所有 agent clients 和 children，准备在后台线程清理
         (
             std::mem::take(&mut instance.agent_clients),
-            std::mem::take(&mut instance.agent_children)
+            std::mem::take(&mut instance.agent_children),
         )
     };
 
