@@ -71,7 +71,6 @@ const MIRRORCHYAN_API_BASES = [
   'https://mirrorchyan.com/api/resources',
   'https://mirrorchyan.net/api/resources',
 ];
-const GITHUB_API_BASE = 'https://api.github.com';
 
 // MirrorChyan API 错误码定义
 // 参考: https://github.com/MirrorChyan/docs/blob/main/ErrorCode.md
