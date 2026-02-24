@@ -376,7 +376,8 @@ export function Toolbar({ showAddPanel, onToggleAddPanel }: ToolbarProps) {
             }
 
             // 如果没勾选等待进程退出，则循环查找设备直到找到
-            if (!(preAction.waitForExit ?? true) && savedDevice && controller) {
+            // 注意：即使没有保存的设备配置，也需要等待（等待任意匹配的设备/窗口出现）
+            if (!(preAction.waitForExit ?? true) && controller) {
               const controllerType = controller.type;
               const isWindowType = controllerType === 'Win32' || controllerType === 'Gamepad';
               log.info(`实例 ${targetInstance.name}: 等待${isWindowType ? '窗口' : '设备'}就绪...`);
@@ -390,19 +391,28 @@ export function Toolbar({ showAddPanel, onToggleAddPanel }: ToolbarProps) {
 
               while (!deviceFound && attempts < maxAttempts) {
                 try {
-                  if (controllerType === 'Adb' && savedDevice.adbDeviceName) {
+                  if (controllerType === 'Adb') {
                     const devices = await maaService.findAdbDevices();
-                    deviceFound = devices.some((d) => d.name === savedDevice.adbDeviceName);
-                  } else if (
-                    (controllerType === 'Win32' || controllerType === 'Gamepad') &&
-                    savedDevice.windowName
-                  ) {
+                    if (savedDevice?.adbDeviceName) {
+                      // 有保存的设备名，精确匹配
+                      deviceFound = devices.some((d) => d.name === savedDevice.adbDeviceName);
+                    } else {
+                      // 没有保存的设备，等待任意设备出现
+                      deviceFound = devices.length > 0;
+                    }
+                  } else if (controllerType === 'Win32' || controllerType === 'Gamepad') {
                     const classRegex =
                       controller.win32?.class_regex || controller.gamepad?.class_regex;
                     const windowRegex =
                       controller.win32?.window_regex || controller.gamepad?.window_regex;
                     const windows = await maaService.findWin32Windows(classRegex, windowRegex);
-                    deviceFound = windows.some((w) => w.window_name === savedDevice.windowName);
+                    if (savedDevice?.windowName) {
+                      // 有保存的窗口名，精确匹配
+                      deviceFound = windows.some((w) => w.window_name === savedDevice.windowName);
+                    } else {
+                      // 没有保存的窗口，等待任意匹配窗口出现
+                      deviceFound = windows.length > 0;
+                    }
                   } else {
                     // 无法确定控制器类型，跳过等待
                     deviceFound = true;
