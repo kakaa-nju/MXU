@@ -204,6 +204,235 @@ pub async fn run_and_wait(file_path: String) -> Result<i32, String> {
     }
 }
 
+/// 检查指定程序是否正在运行（通过完整路径比较，避免同名程序误判）
+/// 公共工具函数，可被其他模块调用
+pub fn check_process_running(program: &str) -> bool {
+    use std::path::PathBuf;
+
+    let resolved_path = PathBuf::from(program);
+
+    // 提取文件名用于初步筛选
+    let file_name = match resolved_path.file_name() {
+        Some(name) => name.to_string_lossy().to_string(),
+        None => {
+            log::warn!("check_process_running: cannot extract filename from '{}'", program);
+            return false;
+        }
+    };
+
+    // 尝试规范化路径用于精确比较
+    let canonical_target = resolved_path
+        .canonicalize()
+        .unwrap_or_else(|_| resolved_path.clone());
+
+    #[cfg(windows)]
+    {
+        use windows::Win32::Foundation::CloseHandle;
+        use windows::Win32::System::Diagnostics::ToolHelp::{
+            CreateToolhelp32Snapshot, Process32FirstW, Process32NextW, PROCESSENTRY32W,
+            TH32CS_SNAPPROCESS,
+        };
+        use windows::Win32::System::Threading::{
+            OpenProcess, QueryFullProcessImageNameW, PROCESS_NAME_FORMAT,
+            PROCESS_QUERY_LIMITED_INFORMATION,
+        };
+
+        let file_name_lower = file_name.to_lowercase();
+
+        /// 动态扩容获取进程完整路径，处理长路径（>MAX_PATH）场景
+        unsafe fn query_process_image_path(
+            process: windows::Win32::Foundation::HANDLE,
+        ) -> Option<String> {
+            let mut capacity: u32 = 512;
+            loop {
+                let mut buf = vec![0u16; capacity as usize];
+                let mut size = capacity;
+                let result = QueryFullProcessImageNameW(
+                    process,
+                    PROCESS_NAME_FORMAT(0),
+                    windows::core::PWSTR(buf.as_mut_ptr()),
+                    &mut size,
+                );
+                if result.is_ok() {
+                    return Some(String::from_utf16_lossy(&buf[..size as usize]));
+                }
+                // ERROR_INSUFFICIENT_BUFFER 对应 HRESULT 0x8007007A，仅此错误时扩容重试
+                let err = windows::core::Error::from_win32();
+                if err.code().0 as u32 != 0x8007007A || capacity >= 32768 {
+                    // 非缓冲区不足错误或已达上限，放弃
+                    return None;
+                }
+                capacity *= 2;
+            }
+        }
+
+        unsafe {
+            let snapshot = match CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0) {
+                Ok(h) => h,
+                Err(e) => {
+                    log::error!("check_process_running: CreateToolhelp32Snapshot failed: {}", e);
+                    return false;
+                }
+            };
+
+            let mut entry = PROCESSENTRY32W {
+                dwSize: std::mem::size_of::<PROCESSENTRY32W>() as u32,
+                ..Default::default()
+            };
+
+            let target_lower = canonical_target.to_string_lossy().to_lowercase();
+
+            if Process32FirstW(snapshot, &mut entry).is_ok() {
+                loop {
+                    // 从 szExeFile (UTF-16) 提取进程名
+                    let len = entry
+                        .szExeFile
+                        .iter()
+                        .position(|&c| c == 0)
+                        .unwrap_or(entry.szExeFile.len());
+                    let exe_name = String::from_utf16_lossy(&entry.szExeFile[..len]).to_lowercase();
+
+                    // 先按文件名筛选
+                    if exe_name == file_name_lower {
+                        // 尝试获取完整路径
+                        if let Ok(process) = OpenProcess(
+                            PROCESS_QUERY_LIMITED_INFORMATION,
+                            false,
+                            entry.th32ProcessID,
+                        ) {
+                            if let Some(running_path) = query_process_image_path(process) {
+                                let running_canonical = PathBuf::from(&running_path)
+                                    .canonicalize()
+                                    .map(|p| p.to_string_lossy().to_lowercase())
+                                    .unwrap_or_else(|_| running_path.to_lowercase());
+
+                                if running_canonical == target_lower {
+                                    let _ = CloseHandle(process);
+                                    let _ = CloseHandle(snapshot);
+                                    info!(
+                                        "check_process_running: '{}' -> true (matched: {})",
+                                        program, running_path
+                                    );
+                                    return true;
+                                }
+                            }
+                            let _ = CloseHandle(process);
+                        }
+                    }
+
+                    if Process32NextW(snapshot, &mut entry).is_err() {
+                        break;
+                    }
+                }
+            }
+
+            let _ = CloseHandle(snapshot);
+            info!("check_process_running: '{}' -> false", program);
+            false
+        }
+    }
+
+    #[cfg(target_os = "linux")]
+    {
+        // 遍历 /proc/<pid>/exe 读取真实可执行路径进行比较
+        if let Ok(proc_dir) = std::fs::read_dir("/proc") {
+            for entry in proc_dir.flatten() {
+                let name = entry.file_name();
+                let name_str = name.to_string_lossy();
+                if !name_str.chars().all(|c| c.is_ascii_digit()) {
+                    continue;
+                }
+
+                let exe_link = entry.path().join("exe");
+                if let Ok(resolved) = std::fs::read_link(&exe_link) {
+                    let canonical = resolved
+                        .canonicalize()
+                        .unwrap_or(resolved);
+                    if canonical == canonical_target {
+                        info!(
+                            "check_process_running: '{}' -> true (pid: {})",
+                            program, name_str
+                        );
+                        return true;
+                    }
+                }
+            }
+        }
+
+        info!("check_process_running: '{}' -> false", program);
+        false
+    }
+
+    #[cfg(target_os = "macos")]
+    {
+        // macOS 没有 /proc，通过 libproc API 获取每个进程的可执行路径进行比较
+        extern "C" {
+            fn proc_listallpids(buffer: *mut i32, buffersize: i32) -> i32;
+            fn proc_pidpath(pid: i32, buffer: *mut u8, buffersize: u32) -> i32;
+        }
+
+        unsafe {
+            // proc_listallpids 返回填入的 PID 数量。
+            // 从合理初始容量开始，若缓冲区不足则扩容重试，避免多余的探测调用。
+            let mut capacity = 1024usize;
+            let num_pids;
+            let mut pids;
+            loop {
+                pids = vec![0i32; capacity];
+                let buf_size = (capacity * std::mem::size_of::<i32>()) as i32;
+                let actual = proc_listallpids(pids.as_mut_ptr(), buf_size);
+                if actual <= 0 {
+                    info!("check_process_running: '{}' -> false (list failed)", program);
+                    return false;
+                }
+                if actual as usize >= capacity {
+                    // 缓冲区已满，可能被截断，扩容后重试
+                    capacity *= 2;
+                    continue;
+                }
+                num_pids = actual as usize;
+                break;
+            }
+
+            // PROC_PIDPATHINFO_MAXSIZE = 4096
+            let mut path_buf = [0u8; 4096];
+
+            for &pid in &pids[..num_pids] {
+                if pid == 0 {
+                    continue;
+                }
+
+                let ret = proc_pidpath(pid, path_buf.as_mut_ptr(), path_buf.len() as u32);
+                if ret <= 0 {
+                    continue;
+                }
+
+                if let Ok(path_str) = std::str::from_utf8(&path_buf[..ret as usize]) {
+                    let pid_path = PathBuf::from(path_str);
+                    let canonical = pid_path.canonicalize().unwrap_or(pid_path);
+                    if canonical == canonical_target {
+                        info!(
+                            "check_process_running: '{}' -> true (pid: {})",
+                            program, pid
+                        );
+                        return true;
+                    }
+                }
+            }
+        }
+
+        info!("check_process_running: '{}' -> false", program);
+        false
+    }
+}
+
+/// Tauri 命令：检查指定程序是否正在运行
+/// program: 程序的绝对路径
+#[tauri::command]
+pub fn is_process_running(program: String) -> bool {
+    check_process_running(&program)
+}
+
 /// Run pre-action (launch program and optionally wait for exit)
 /// program: 程序路径
 /// args: 附加参数（空格分隔）
