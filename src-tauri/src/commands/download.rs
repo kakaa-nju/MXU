@@ -28,6 +28,8 @@ pub async fn get_github_release_by_version(
     proxy_url: Option<String>,
 ) -> Result<Option<GitHubRelease>, String> {
 
+    info!("[下载] 使用代理: {}", proxy_url.as_ref().unwrap_or(&"无代理".into()));
+
     let url = format!(
         "https://api.github.com/repos/{}/{}/releases",
         owner, repo
