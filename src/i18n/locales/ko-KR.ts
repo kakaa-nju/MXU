@@ -135,7 +135,8 @@ export default {
       waitYes: '프로그램 종료 후 계속',
       waitNo: '실행 후 즉시 계속',
       skipLabel: '실행 중이면 건너뛰기',
-      skipDescription: '활성화하면 프로그램이 이미 실행 중일 때 중복 실행을 방지하기 위해 시작을 건너뜁니다',
+      skipDescription:
+        '활성화하면 프로그램이 이미 실행 중일 때 중복 실행을 방지하기 위해 시작을 건너뜁니다',
       skipYes: '이미 실행 중이면 시작 건너뛰기',
       skipNo: '항상 새 인스턴스 시작',
     },

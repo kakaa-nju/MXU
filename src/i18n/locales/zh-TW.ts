@@ -279,8 +279,7 @@ export default {
     waitForExitHintPre:
       '禁用時啟動程序後立即繼續，並循環輪詢裝置連線狀態，適用於啟動遊戲等非同步場景；啟用時等待程序退出後再繼續，適用於執行腳本等需要同步完成的操作',
     skipIfRunning: '已運行時跳過',
-    skipIfRunningHint:
-      '啟用時，如果該程式已在運行則跳過執行，適用於避免重複啟動遊戲等場景',
+    skipIfRunningHint: '啟用時，如果該程式已在運行則跳過執行，適用於避免重複啟動遊戲等場景',
     preActionSkipped: '前置程式 {{name}} 已在運行，跳過執行',
     waitingForDevice: '正在等待裝置就緒...',
     waitingForWindow: '正在等待視窗就緒...',

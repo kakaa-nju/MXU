@@ -136,7 +136,8 @@ export default {
       waitYes: 'Wait for program to exit before continuing',
       waitNo: 'Continue immediately after launch',
       skipLabel: 'Skip if Running',
-      skipDescription: 'When enabled, skips launching if the program is already running to avoid duplicates',
+      skipDescription:
+        'When enabled, skips launching if the program is already running to avoid duplicates',
       skipYes: 'Skip launch if already running',
       skipNo: 'Always launch new instance',
     },

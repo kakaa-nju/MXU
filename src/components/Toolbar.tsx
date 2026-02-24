@@ -449,7 +449,11 @@ export function Toolbar({ showAddPanel, onToggleAddPanel }: ToolbarProps) {
                   message: isWindowType ? t('action.windowReady') : t('action.deviceReady'),
                 });
                 // 如果没有 savedDevice，说明是自动匹配的，需要给用户提示
-                if (!savedDevice?.windowName && !savedDevice?.adbDeviceName && !savedDevice?.playcoverAddress) {
+                if (
+                  !savedDevice?.windowName &&
+                  !savedDevice?.adbDeviceName &&
+                  !savedDevice?.playcoverAddress
+                ) {
                   // 尝试找出实际匹配到的名称用于提示
                   try {
                     if (controllerType === 'Adb') {
@@ -457,17 +461,23 @@ export function Toolbar({ showAddPanel, onToggleAddPanel }: ToolbarProps) {
                       if (devices.length > 0) {
                         addLog(targetId, {
                           type: 'info',
-                          message: t('taskList.autoConnect.autoSelectedDevice', { name: devices[0].name || devices[0].address }),
+                          message: t('taskList.autoConnect.autoSelectedDevice', {
+                            name: devices[0].name || devices[0].address,
+                          }),
                         });
                       }
                     } else if (controllerType === 'Win32' || controllerType === 'Gamepad') {
-                      const classRegex = controller.win32?.class_regex || controller.gamepad?.class_regex;
-                      const windowRegex = controller.win32?.window_regex || controller.gamepad?.window_regex;
+                      const classRegex =
+                        controller.win32?.class_regex || controller.gamepad?.class_regex;
+                      const windowRegex =
+                        controller.win32?.window_regex || controller.gamepad?.window_regex;
                       const windows = await maaService.findWin32Windows(classRegex, windowRegex);
                       if (windows.length > 0) {
                         addLog(targetId, {
                           type: 'info',
-                          message: t('taskList.autoConnect.autoSelectedWindow', { name: windows[0].window_name || windows[0].class_name }),
+                          message: t('taskList.autoConnect.autoSelectedWindow', {
+                            name: windows[0].window_name || windows[0].class_name,
+                          }),
                         });
                       }
                     }

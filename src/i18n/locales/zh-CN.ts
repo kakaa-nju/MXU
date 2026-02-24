@@ -129,8 +129,7 @@ export default {
       argsLabel: '附加参数',
       argsPlaceholder: '输入附加参数（可选）',
       waitLabel: '等待退出',
-      waitDescription:
-        '禁用时启动进程后立即继续；启用时等待进程退出后再继续作',
+      waitDescription: '禁用时启动进程后立即继续；启用时等待进程退出后再继续作',
       waitYes: '等待程序退出后继续',
       waitNo: '启动后立即继续',
       skipLabel: '已运行时跳过',
@@ -280,8 +279,7 @@ export default {
     waitForExitHintPre:
       '禁用时启动进程后立即继续，并循环轮询设备连接状态，适用于启动游戏等异步场景；启用时等待进程退出后再继续，适用于执行脚本等需要同步完成的操作',
     skipIfRunning: '已运行时跳过',
-    skipIfRunningHint:
-      '启用时，如果该程序已在运行则跳过执行，适用于避免重复启动游戏等场景',
+    skipIfRunningHint: '启用时，如果该程序已在运行则跳过执行，适用于避免重复启动游戏等场景',
     preActionSkipped: '前置程序 {{name}} 已在运行，跳过执行',
     waitingForDevice: '正在等待设备就绪...',
     waitingForWindow: '正在等待窗口就绪...',

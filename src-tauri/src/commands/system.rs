@@ -215,7 +215,10 @@ pub fn check_process_running(program: &str) -> bool {
     let file_name = match resolved_path.file_name() {
         Some(name) => name.to_string_lossy().to_string(),
         None => {
-            log::warn!("check_process_running: cannot extract filename from '{}'", program);
+            log::warn!(
+                "check_process_running: cannot extract filename from '{}'",
+                program
+            );
             return false;
         }
     };
@@ -270,7 +273,10 @@ pub fn check_process_running(program: &str) -> bool {
             let snapshot = match CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0) {
                 Ok(h) => h,
                 Err(e) => {
-                    log::error!("check_process_running: CreateToolhelp32Snapshot failed: {}", e);
+                    log::error!(
+                        "check_process_running: CreateToolhelp32Snapshot failed: {}",
+                        e
+                    );
                     return false;
                 }
             };
@@ -345,9 +351,7 @@ pub fn check_process_running(program: &str) -> bool {
 
                 let exe_link = entry.path().join("exe");
                 if let Ok(resolved) = std::fs::read_link(&exe_link) {
-                    let canonical = resolved
-                        .canonicalize()
-                        .unwrap_or(resolved);
+                    let canonical = resolved.canonicalize().unwrap_or(resolved);
                     if canonical == canonical_target {
                         info!(
                             "check_process_running: '{}' -> true (pid: {})",
@@ -382,7 +386,10 @@ pub fn check_process_running(program: &str) -> bool {
                 let buf_size = (capacity * std::mem::size_of::<i32>()) as i32;
                 let actual = proc_listallpids(pids.as_mut_ptr(), buf_size);
                 if actual <= 0 {
-                    info!("check_process_running: '{}' -> false (list failed)", program);
+                    info!(
+                        "check_process_running: '{}' -> false (list failed)",
+                        program
+                    );
                     return false;
                 }
                 if actual as usize >= capacity {
