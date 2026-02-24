@@ -566,6 +566,7 @@ function App() {
             userAgent: 'MXU',
             githubUrl: result.interface.github,
             githubPat: appState.mirrorChyanSettings.githubPat || undefined,
+            proxyUrl: appState.proxySettings.url,
             projectName: result.interface.name,
           })
             .then((updateResult) => {

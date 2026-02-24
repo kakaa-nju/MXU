@@ -442,7 +442,7 @@ async function getGitHubReleaseByVersion(
   repo: string,
   targetVersion: string,
   githubPat?: string,
-  //proxyUrl?: string,
+  proxyUrl?: string,
 ): Promise<GitHubRelease | null> {
   try {
     return await invoke<GitHubRelease | null>('get_github_release_by_version', {
@@ -450,7 +450,7 @@ async function getGitHubReleaseByVersion(
       repo,
       targetVersion,
       githubPat,
-      proxyUrl: 'http://127.0.0.1:7890',
+      proxyUrl: proxyUrl,
     });
   } catch (error) {
     log.error('获取 GitHub Release 失败:', error);
@@ -608,6 +608,7 @@ export interface GetGitHubDownloadUrlOptions {
   targetVersion: string; // Mirror酱返回的目标版本号
   githubPat?: string; // GitHub Personal Access Token (支持 classic 和 fine-grained)
   projectName?: string; // 项目名称，用于拼接直接下载链接（来自 interface.name）
+  proxyUrl?: string; // 代理 URL，用于 GitHub API 请求
 }
 
 /**
@@ -619,7 +620,7 @@ export interface GetGitHubDownloadUrlOptions {
 export async function getGitHubDownloadUrl(
   options: GetGitHubDownloadUrlOptions,
 ): Promise<{ url: string; size: number; filename: string } | null> {
-  const { githubUrl, targetVersion, githubPat, projectName } = options;
+  const { githubUrl, targetVersion, githubPat, projectName, proxyUrl } = options;
 
   const parsed = parseGitHubUrl(githubUrl);
   if (!parsed) {
@@ -629,8 +630,8 @@ export async function getGitHubDownloadUrl(
 
   const { owner, repo } = parsed;
 
-  // 根据 Mirror酱返回的版本号查找对应的 release（传递 PAT）
-  const release = await getGitHubReleaseByVersion(owner, repo, targetVersion, githubPat);
+  // 根据 Mirror酱返回的版本号查找对应的 release（传递 PAT 和 proxyUrl）
+  const release = await getGitHubReleaseByVersion(owner, repo, targetVersion, githubPat, proxyUrl);
 
   if (release) {
     // API 请求成功，使用 assets 匹配
@@ -801,6 +802,7 @@ export async function downloadUpdate(
 export interface CheckAndDownloadOptions extends CheckUpdateOptions {
   githubUrl?: string;
   githubPat?: string; // GitHub Personal Access Token
+  proxyUrl?: string; // 代理 URL，用于 GitHub API 请求
   projectName?: string; // 项目名称，用于 GitHub API 失败时拼接直接下载链接
 }
 
@@ -817,7 +819,7 @@ export async function checkAndPrepareDownload(
     return null;
   }
 
-  const { githubUrl, cdk, channel, githubPat, projectName, ...checkOptions } = options;
+  const { githubUrl, cdk, channel, githubPat, projectName, proxyUrl, ...checkOptions } = options;
 
   // 始终使用 Mirror酱 检查更新
   const updateInfo = await checkUpdate({ ...checkOptions, cdk, channel });
@@ -846,6 +848,7 @@ export async function checkAndPrepareDownload(
       targetVersion: updateInfo.versionName,
       githubPat,
       projectName, // 用于 API 失败时拼接直接下载链接
+      proxyUrl,
     });
 
     if (githubDownload) {
