@@ -7,6 +7,9 @@ use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 
 use tauri::Emitter;
 
+use super::types::GitHubRelease;
+use reqwest::header::{ACCEPT, USER_AGENT, AUTHORIZATION};
+
 use super::types::{DownloadProgressEvent, DownloadResult};
 use super::update::move_to_old_folder;
 use super::utils::build_user_agent;
@@ -32,8 +35,8 @@ pub async fn get_github_release_by_version(
 
     let mut client_builder = reqwest::Client::builder()
         .user_agent("mxu")
-        .timeout(Duration::from_secs(30))
-        .connect_timeout(Duration::from_secs(10))
+        .timeout(std::time::Duration::from_secs(10))
+        .connect_timeout(std::time::Duration::from_secs(3));
         .no_proxy();
 
     if let Some(ref proxy) = proxy_url {
