@@ -100,7 +100,7 @@ pub async fn get_github_release_by_version(
             return Ok(Some(release));
         }
     }
-    warn!("未找到匹配的 Release: target_version={}, available_versions={:?}", target_version, releases.iter().map(|r| &r.tag_name).collect::<Vec<_>>());
+    warn!("未找到匹配的 Release: target_version={}", target_version);
     Ok(None)
 }
 
