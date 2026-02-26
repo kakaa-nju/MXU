@@ -42,7 +42,7 @@ function OptionPreviewTag({
 }: {
   label: string;
   value: string;
-  type: 'select' | 'switch' | 'input';
+  type: 'select' | 'checkbox' | 'switch' | 'input';
 }) {
   // 截断过长的显示值
   const truncateText = (text: string, max: number) =>
@@ -154,6 +154,16 @@ function isOptionControllerIncompatible(
   return !optionDef.controller.includes(currentControllerName);
 }
 
+/** v2.3.0: 检查选项是否与当前资源不兼容 */
+function isOptionResourceIncompatible(
+  optionDef: import('@/types/interface').OptionDefinition | null | undefined,
+  currentResourceName: string | undefined,
+): boolean {
+  if (!optionDef?.resource || optionDef.resource.length === 0) return false;
+  if (!currentResourceName) return false;
+  return !optionDef.resource.includes(currentResourceName);
+}
+
 /** 选项列表渲染器：自动将连续的无子选项 switch 分组为网格 */
 function OptionListRenderer({
   instanceId,
@@ -162,6 +172,7 @@ function OptionListRenderer({
   optionValues,
   disabled,
   currentControllerName,
+  currentResourceName,
 }: {
   instanceId: string;
   taskId: string;
@@ -169,6 +180,7 @@ function OptionListRenderer({
   optionValues: Record<string, import('@/types/interface').OptionValue>;
   disabled: boolean;
   currentControllerName: string | undefined;
+  currentResourceName: string | undefined;
 }) {
   const { projectInterface, resolveI18nText, language } = useAppStore();
   const { t } = useTranslation();
@@ -237,18 +249,18 @@ function OptionListRenderer({
           : undefined
         : resolveI18nText(optionDef?.description, langKey);
 
-      // 检查选项是否与当前控制器不兼容
       const controllerIncompatible = isOptionControllerIncompatible(
         optionDef,
         currentControllerName,
       );
+      const resourceIncompatible = isOptionResourceIncompatible(optionDef, currentResourceName);
 
       return {
         optionKey,
         label,
         description,
         isChecked,
-        controllerIncompatible,
+        controllerIncompatible: controllerIncompatible || resourceIncompatible,
       };
     });
   };
@@ -272,6 +284,11 @@ function OptionListRenderer({
           optionDef,
           currentControllerName,
         );
+        const optionResourceIncompatible = isOptionResourceIncompatible(
+          optionDef,
+          currentResourceName,
+        );
+        const optionIncompatible = optionControllerIncompatible || optionResourceIncompatible;
         return (
           <OptionEditor
             key={group.optionKey}
@@ -279,8 +296,8 @@ function OptionListRenderer({
             taskId={taskId}
             optionKey={group.optionKey}
             value={optionValues[group.optionKey]}
-            disabled={disabled || optionControllerIncompatible}
-            controllerIncompatible={optionControllerIncompatible}
+            disabled={disabled || optionIncompatible}
+            controllerIncompatible={optionIncompatible}
           />
         );
       })}
@@ -413,11 +430,11 @@ export function TaskItem({ instanceId, task }: TaskItemProps) {
     }
 
     // 生成新的 pipeline override 并调用后端
-    const pipelineOverride = generateTaskPipelineOverride(task, projectInterface);
+    const pipelineOverride = generateTaskPipelineOverride(task, projectInterface, currentControllerName, currentResourceName);
     maaService.overridePipeline(instanceId, maaTaskId, pipelineOverride).catch((err) => {
       loggers.task.error('Failed to override pipeline:', err);
     });
-  }, [task.optionValues, taskRunStatus, instanceId, task.id, projectInterface]);
+  }, [task.optionValues, taskRunStatus, instanceId, task.id, projectInterface, currentControllerName, currentResourceName]);
 
   const { state: menuState, show: showMenu, hide: hideMenu } = useContextMenu();
 
@@ -490,7 +507,7 @@ export function TaskItem({ instanceId, task }: TaskItemProps) {
       key: string;
       label: string;
       value: string;
-      type: 'select' | 'switch' | 'input';
+      type: 'select' | 'checkbox' | 'switch' | 'input';
     }[] = [];
     const maxPreviews = 3;
 
@@ -533,6 +550,14 @@ export function TaskItem({ instanceId, task }: TaskItemProps) {
             });
           }
         }
+      } else if (optionDef.type === 'checkbox') {
+        const caseNames = optionValue?.type === 'checkbox' ? optionValue.caseNames : optionDef.default_case || [];
+        previews.push({
+          key: optionKey,
+          label: optionLabel,
+          value: `${caseNames.length}/${optionDef.cases.length}`,
+          type: 'checkbox',
+        });
       } else {
         // select 类型（默认）
         const caseName =
@@ -1005,6 +1030,7 @@ export function TaskItem({ instanceId, task }: TaskItemProps) {
                   optionValues={task.optionValues}
                   disabled={!canEditOptions || isIncompatible}
                   currentControllerName={currentControllerName}
+                  currentResourceName={currentResourceName}
                 />
               )}
             </div>
