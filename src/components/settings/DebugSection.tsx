@@ -139,20 +139,17 @@ export function DebugSection() {
     }
   };
 
-const webServerAddress = (() => {
+  const webServerAddress = (() => {
+    if (window.location.host && !isTauri()) {
+      return window.location.origin;
+    }
 
-  if (window.location.host && !isTauri()) {
-    return window.location.origin;
-  }
-  
-  // Tauri 桌面端直连后端
-  if (!webServerPort) return null;
-  
-  const host = allowLanAccess 
-    ? (lanIp || 'localhost') 
-    : 'localhost';
-  return `http://${host}:${webServerPort}`;
-})();
+    // Tauri 桌面端直连后端
+    if (!webServerPort) return null;
+
+    const host = allowLanAccess ? lanIp || 'localhost' : 'localhost';
+    return `http://${host}:${webServerPort}`;
+  })();
 
   const handleOpenWebServer = useCallback(async () => {
     if (!webServerAddress) return;
